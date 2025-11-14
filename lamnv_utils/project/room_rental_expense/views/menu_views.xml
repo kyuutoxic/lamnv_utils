@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Main Menu -->
+        <menuitem id="room_rental_menu" name="Quản Lý Phòng Trọ" web_icon="room_rental_expense,static/description/icon.png"/>
+
+        <!-- Submenu: Quản Lý -->
+        <menuitem id="room_rental_manage_menu" name="Quản Lý" parent="room_rental_menu" sequence="10"/>
+
+        <menuitem id="rental_room_menu" name="Phòng Trọ" parent="room_rental_manage_menu" action="action_rental_room" sequence="1"/>
+        <menuitem id="meter_reading_menu" name="Chỉ Số Công Tơ" parent="room_rental_manage_menu" action="action_meter_reading" sequence="2"/>
+        <menuitem id="room_invoice_menu" name="Hóa Đơn" parent="room_rental_manage_menu" action="action_room_invoice" sequence="3"/>
+        <menuitem id="room_payment_menu" name="Thanh Toán" parent="room_rental_manage_menu" action="action_room_payment" sequence="4"/>
+
+        <!-- Submenu: Chi Phí -->
+        <menuitem id="room_rental_expense_menu" name="Chi Phí &amp; Khác" parent="room_rental_menu" sequence="20"/>
+
+        <menuitem id="room_expense_menu" name="Chi Phí" parent="room_rental_expense_menu" action="action_room_expense" sequence="1"/>
+        <menuitem id="room_deposit_menu" name="Tiền Cọc" parent="room_rental_expense_menu" action="action_room_deposit" sequence="2"/>
+        <menuitem id="room_issue_menu" name="Sự Cố" parent="room_rental_expense_menu" action="action_room_issue" sequence="3"/>
+
+        <!-- Submenu: Cấu Hình -->
+        <menuitem id="room_rental_config_menu" name="Cấu Hình" parent="room_rental_menu" sequence="30"/>
+
+        <menuitem id="room_config_menu" name="Giá Tiện Ích" parent="room_rental_config_menu" action="action_room_config" sequence="1"/>
+        <menuitem id="room_history_menu" name="Lịch Sử Phòng" parent="room_rental_config_menu" action="action_room_history" sequence="2"/>
+
+        <!-- Submenu: Báo Cáo -->
+        <menuitem id="room_rental_report_menu" name="Báo Cáo" parent="room_rental_menu" sequence="40"/>
+
+    </data>
+</odoo>

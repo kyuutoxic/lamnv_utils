@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Room Issue List View -->
+        <record id="view_room_issue_tree" model="ir.ui.view">
+            <field name="name">room.issue.list</field>
+            <field name="model">room.issue</field>
+            <field name="arch" type="xml">
+                <list string="Danh Sách Sự Cố" decoration-danger="severity == 'critical'" decoration-warning="severity == 'high'">
+                    <field name="issue_date"/>
+                    <field name="room_id"/>
+                    <field name="category"/>
+                    <field name="severity"/>
+                    <field name="status"/>
+                    <field name="resolved_date"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- Room Issue Form View -->
+        <record id="view_room_issue_form" model="ir.ui.view">
+            <field name="name">room.issue.form</field>
+            <field name="model">room.issue</field>
+            <field name="arch" type="xml">
+                <form string="Sự Cố">
+                    <header>
+                        <field name="status" widget="statusbar" statusbar_visible="reported,acknowledged,in_progress,resolved"/>
+                    </header>
+                    <sheet>
+                        <h1>
+                            <field name="category" class="oe_inline" required="1"/>
+                        </h1>
+
+                        <group>
+                            <group>
+                                <field name="room_id" required="1"/>
+                                <field name="issue_date" required="1"/>
+                                <field name="severity"/>
+                            </group>
+                            <group>
+                                <field name="reported_date"/>
+                                <field name="resolved_date"/>
+                                <field name="issue_image" widget="image" class="oe_avatar"/>
+                            </group>
+                        </group>
+
+                        <field name="description" required="1" placeholder="Mô tả chi tiết sự cố..."/>
+                        <field name="notes" placeholder="Ghi chú..."/>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Action: Room Issue -->
+        <record id="action_room_issue" model="ir.actions.act_window">
+            <field name="name">Sự Cố</field>
+            <field name="res_model">room.issue</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Báo cáo sự cố
+                </p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

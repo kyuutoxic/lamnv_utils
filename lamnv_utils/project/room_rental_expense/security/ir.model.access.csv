@@ -1,0 +1,10 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_rental_room_user,rental.room user,model_rental_room,base.group_user,1,1,1,1
+access_meter_reading_user,meter.reading user,model_meter_reading,base.group_user,1,1,1,1
+access_room_invoice_user,room.invoice user,model_room_invoice,base.group_user,1,1,1,1
+access_room_payment_user,room.payment user,model_room_payment,base.group_user,1,1,1,1
+access_room_expense_user,room.expense user,model_room_expense,base.group_user,1,1,1,1
+access_room_config_user,room.config user,model_room_config,base.group_user,1,1,1,1
+access_room_history_user,room.history user,model_room_history,base.group_user,1,1,1,1
+access_room_deposit_user,room.deposit user,model_room_deposit,base.group_user,1,1,1,1
+access_room_issue_user,room.issue user,model_room_issue,base.group_user,1,1,1,1

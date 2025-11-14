@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Rental Room List View -->
+    <record id="view_rental_room_list" model="ir.ui.view">
+            <field name="name">rental.room.list</field>
+            <field name="model">rental.room</field>
+            <field name="arch" type="xml">
+                <list string="Danh Sách Phòng Trọ" decoration-info="end_date and end_date &lt; current_date">
+                    <field name="name"/>
+                    <field name="address"/>
+                    <field name="landlord_name"/>
+                    <field name="start_date"/>
+                    <field name="end_date"/>
+                    <field name="total_invoiced" sum="Total Invoiced"/>
+                    <field name="total_paid" sum="Total Paid"/>
+                    <field name="total_remaining" sum="Remaining"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- Rental Room Form View -->
+        <record id="view_rental_room_form" model="ir.ui.view">
+            <field name="name">rental.room.form</field>
+            <field name="model">rental.room</field>
+            <field name="arch" type="xml">
+                <form string="Phòng Trọ">
+                    <header>
+                        <button name="action_view_invoices" type="object" string="Xem Hóa Đơn" class="oe_highlight"/>
+                        <button name="action_view_meter_readings" type="object" string="Xem Chỉ Số" class="oe_highlight"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button class="oe_stat_button" name="action_view_invoices" type="object" icon="fa-file-text">
+                                <field string="Hóa Đơn" name="invoice_ids" widget="statinfo"/>
+                            </button>
+                            <button class="oe_stat_button" name="action_view_meter_readings" type="object" icon="fa-bar-chart">
+                                <field string="Chỉ Số" name="meter_reading_ids" widget="statinfo"/>
+                            </button>
+                        </div>
+
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" placeholder="Tên Phòng"/>
+                            </h1>
+                        </div>
+
+                        <notebook>
+                            <!-- Tab: Thông Tin Cơ Bản -->
+                            <page string="Thông Tin Cơ Bản" name="basic_info">
+                                <group>
+                                    <group>
+                                        <field name="room_number" string="Số Phòng"/>
+                                        <field name="building_name" string="Tên Nhà"/>
+                                        <field name="room_type" string="Loại Phòng"/>
+                                        <field name="area" string="Diện Tích (m²)"/>
+                                    </group>
+                                    <group>
+                                        <field name="start_date" string="Ngày Bắt Đầu"/>
+                                        <field name="end_date" string="Ngày Kết Thúc"/>
+                                        <field name="address" string="Địa Chỉ"/>
+                                        <field name="image" widget="image" class="oe_avatar" string="Ảnh Phòng"/>
+                                    </group>
+                                </group>
+                                <field name="description" placeholder="Mô tả phòng..." string="Mô Tả"/>
+                                <field name="utilities_included" placeholder="Tiện ích bao gồm..." string="Tiện Ích"/>
+                            </page>
+
+                            <!-- Tab: Chủ Phòng -->
+                            <page string="Thông Tin Chủ Phòng" name="landlord_info">
+                                <group>
+                                    <group>
+                                        <field name="landlord_name" string="Tên Chủ Phòng"/>
+                                        <field name="landlord_phone" string="Số Điện Thoại"/>
+                                        <field name="landlord_email" string="Email"/>
+                                        <field name="landlord_favorite" string="Yêu Thích"/>
+                                    </group>
+                                    <group>
+                                        <field name="landlord_bank_name" string="Ngân Hàng"/>
+                                        <field name="landlord_bank_account" string="Tài Khoản Ngân Hàng"/>
+                                    </group>
+                                </group>
+                            </page>
+
+                            <!-- Tab: Tổng Hợp Tài Chính -->
+                            <page string="Tài Chính" name="financial">
+                                <group>
+                                    <group>
+                                        <field name="total_invoiced" readonly="1" string="Tổng Tiền Hóa Đơn"/>
+                                        <field name="total_paid" readonly="1" string="Tổng Tiền Thanh Toán"/>
+                                    </group>
+                                    <group>
+                                        <field name="total_remaining" readonly="1" string="Tổng Tiền Nợ"/>
+                                        <field name="total_expenses" readonly="1" string="Tổng Chi Phí"/>
+                                    </group>
+                                </group>
+                            </page>
+
+                            <!-- Tab: Hóa Đơn -->
+                            <page string="Hóa Đơn" name="invoices">
+                                <field name="invoice_ids">
+                                    <list string="Danh Sách Hóa Đơn">
+                                        <field name="invoice_number"/>
+                                        <field name="invoice_month"/>
+                                        <field name="total_amount"/>
+                                        <field name="paid_amount"/>
+                                        <field name="remaining_amount"/>
+                                        <field name="status"/>
+                                    </list>
+                                </field>
+                            </page>
+
+                            <!-- Tab: Chỉ Số Công Tơ -->
+                            <page string="Chỉ Số Công Tơ" name="meter_readings">
+                                <field name="meter_reading_ids">
+                                    <list string="Danh Sách Chỉ Số">
+                                        <field name="reading_date"/>
+                                        <field name="electric_current"/>
+                                        <field name="electric_usage"/>
+                                        <field name="water_current"/>
+                                        <field name="water_usage"/>
+                                    </list>
+                                </field>
+                            </page>
+
+                            <!-- Tab: Chi Phí -->
+                            <page string="Chi Phí" name="expenses">
+                                <field name="expense_ids">
+                                    <list string="Danh Sách Chi Phí">
+                                        <field name="expense_date"/>
+                                        <field name="category"/>
+                                        <field name="description"/>
+                                        <field name="amount"/>
+                                    </list>
+                                </field>
+                            </page>
+
+                            <!-- Tab: Tiền Cọc -->
+                            <page string="Tiền Cọc" name="deposits">
+                                <field name="deposit_ids">
+                                    <list string="Danh Sách Tiền Cọc">
+                                        <field name="deposit_date"/>
+                                        <field name="deposit_amount"/>
+                                        <field name="status"/>
+                                        <field name="return_amount"/>
+                                    </list>
+                                </field>
+                            </page>
+
+                            <!-- Tab: Sự Cố -->
+                            <page string="Sự Cố" name="issues">
+                                <field name="issue_ids">
+                                    <list string="Danh Sách Sự Cố">
+                                        <field name="issue_date"/>
+                                        <field name="category"/>
+                                        <field name="severity"/>
+                                        <field name="status"/>
+                                    </list>
+                                </field>
+                            </page>
+
+                            <!-- Tab: Ghi Chú -->
+                            <page string="Ghi Chú" name="notes">
+                                <field name="note" placeholder="Ghi chú thêm..."/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Rental Room Kanban View -->
+        <record id="view_rental_room_kanban" model="ir.ui.view">
+            <field name="name">rental.room.kanban</field>
+            <field name="model">rental.room</field>
+            <field name="arch" type="xml">
+                <kanban string="Phòng Trọ">
+                    <field name="id"/>
+                    <field name="name"/>
+                    <field name="building_name"/>
+                    <field name="landlord_name"/>
+                    <field name="total_invoiced"/>
+                    <field name="total_remaining"/>
+                    <templates>
+                        <t t-name="card">
+                            <div class="oe_kanban_card oe_kanban_global_click">
+                                <div class="oe_kanban_card_header">
+                                    <span class="oe_kanban_record_title">
+                                        <strong t-esc="record.name.value"/>
+                                    </span>
+                                </div>
+                                <div class="oe_kanban_card_body">
+                                    <p>
+                                        <strong>Chủ phòng:</strong>
+                                        <span t-esc="record.landlord_name.value"/>
+                                    </p>
+                                    <p>
+                                        <strong>Nhà:</strong>
+                                        <span t-esc="record.building_name.value"/>
+                                    </p>
+                                    <p>
+                                        <strong>Tổng tiền:</strong>
+                                        <span t-esc="record.total_invoiced.value"/>
+                                    </p>
+                                    <p t-if="record.total_remaining.value">
+                                        <strong style="color:red;">Nợ:</strong>
+                                        <span style="color:red;" t-esc="record.total_remaining.value"/>
+                                    </p>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <!-- Action: Rental Room -->
+        <record id="action_rental_room" model="ir.actions.act_window">
+            <field name="name">Phòng Trọ</field>
+            <field name="res_model">rental.room</field>
+            <field name="view_mode">kanban,list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Tạo phòng trọ mới
+                </p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Room History List View -->
+        <record id="view_room_history_tree" model="ir.ui.view">
+            <field name="name">room.history.list</field>
+            <field name="model">room.history</field>
+            <field name="arch" type="xml">
+                <list string="Danh Sách Lịch Sử Phòng">
+                    <field name="name"/>
+                    <field name="from_date"/>
+                    <field name="to_date"/>
+                    <field name="landlord_name"/>
+                    <field name="landlord_phone"/>
+                    <field name="avg_rent"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- Room History Form View -->
+        <record id="view_room_history_form" model="ir.ui.view">
+            <field name="name">room.history.form</field>
+            <field name="model">room.history</field>
+            <field name="arch" type="xml">
+                <form string="Lịch Sử Phòng">
+                    <sheet>
+                        <h1>
+                            <field name="name" class="oe_inline" required="1"/>
+                        </h1>
+
+                        <group>
+                            <group>
+                                <field name="from_date"/>
+                                <field name="to_date"/>
+                            </group>
+                            <group>
+                                <field name="landlord_name"/>
+                                <field name="landlord_phone"/>
+                                <field name="avg_rent"/>
+                            </group>
+                        </group>
+
+                        <field name="notes" placeholder="Nhận xét về phòng, chủ phòng..."/>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Action: Room History -->
+        <record id="action_room_history" model="ir.actions.act_window">
+            <field name="name">Lịch Sử Phòng</field>
+            <field name="res_model">room.history</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Thêm phòng đã thuê
+                </p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

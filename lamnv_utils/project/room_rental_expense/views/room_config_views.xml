@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Room Config List View -->
+        <record id="view_room_config_tree" model="ir.ui.view">
+            <field name="name">room.config.list</field>
+            <field name="model">room.config</field>
+            <field name="arch" type="xml">
+                <list string="Danh Sách Cấu Hình Giá">
+                    <field name="room_id"/>
+                    <field name="effective_date"/>
+                    <field name="electric_price"/>
+                    <field name="water_price"/>
+                    <field name="wifi_price"/>
+                    <field name="trash_fee"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- Room Config Form View -->
+        <record id="view_room_config_form" model="ir.ui.view">
+            <field name="name">room.config.form</field>
+            <field name="model">room.config</field>
+            <field name="arch" type="xml">
+                <form string="Cấu Hình Giá">
+                    <sheet>
+                        <h1>
+                            <field name="room_id" class="oe_inline" required="1"/>
+                        </h1>
+
+                        <group>
+                            <group>
+                                <field name="effective_date" required="1"/>
+                                <field name="electric_price" required="1"/>
+                                <field name="water_price" required="1"/>
+                            </group>
+                            <group>
+                                <field name="wifi_price"/>
+                                <field name="trash_fee"/>
+                                <field name="parking_fee"/>
+                                <field name="other_utilities_price"/>
+                            </group>
+                        </group>
+
+                        <field name="notes" placeholder="Ghi chú..."/>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Action: Room Config -->
+        <record id="action_room_config" model="ir.actions.act_window">
+            <field name="name">Giá Tiện Ích</field>
+            <field name="res_model">room.config</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Cấu hình giá tiện ích
+                </p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

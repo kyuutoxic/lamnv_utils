@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Room Invoice List View -->
+        <record id="view_room_invoice_tree" model="ir.ui.view">
+            <field name="name">room.invoice.list</field>
+            <field name="model">room.invoice</field>
+            <field name="arch" type="xml">
+                <list string="Danh Sách Hóa Đơn" decoration-danger="status == 'overdue'" decoration-success="status == 'paid'">
+                    <field name="invoice_number"/>
+                    <field name="room_id"/>
+                    <field name="invoice_month"/>
+                    <field name="total_amount" sum="Tổng"/>
+                    <field name="paid_amount" sum="Đã Thanh Toán"/>
+                    <field name="remaining_amount" sum="Còn Lại"/>
+                    <field name="status"/>
+                    <field name="due_date"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- Room Invoice Form View -->
+        <record id="view_room_invoice_form" model="ir.ui.view">
+            <field name="name">room.invoice.form</field>
+            <field name="model">room.invoice</field>
+            <field name="arch" type="xml">
+                <form string="Hóa Đơn">
+                    <header>
+                        <button name="action_confirm" type="object" string="Xác Nhận" class="oe_highlight"/>
+                        <button name="action_paid" type="object" string="Đã Thanh Toán" class="oe_highlight"/>
+                        <button name="action_cancel" type="object" string="Hủy"/>
+                        <field name="status" widget="statusbar" statusbar_visible="draft,pending,paid,overdue"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button class="oe_stat_button" type="object" name="action_confirm" icon="fa-money">
+                                <field string="Thanh Toán" name="payment_ids" widget="statinfo"/>
+                            </button>
+                        </div>
+
+                        <div class="oe_title">
+                            <h1>
+                                <field name="invoice_number" placeholder="Số Hóa Đơn"/>
+                            </h1>
+                        </div>
+
+                        <group>
+                            <group>
+                                <field name="room_id" required="1"/>
+                                <field name="invoice_month" required="1"/>
+                                <field name="invoice_date"/>
+                            </group>
+                            <group>
+                                <field name="due_date"/>
+                            </group>
+                        </group>
+
+                        <notebook>
+                            <!-- Tab: Chi Tiết Hóa Đơn -->
+                            <page string="Chi Tiết Hóa Đơn" name="invoice_details">
+                                <group>
+                                    <group string="Tiền Thuê">
+                                        <field name="rent_amount" required="1"/>
+                                    </group>
+                                    <group string="Tiền Điện">
+                                        <field name="electric_price_per_unit"/>
+                                        <field name="electric_usage"/>
+                                        <field name="electric_amount" readonly="1"/>
+                                    </group>
+                                </group>
+
+                                <group>
+                                    <group string="Tiền Nước">
+                                        <field name="water_price_per_unit"/>
+                                        <field name="water_usage"/>
+                                        <field name="water_amount" readonly="1"/>
+                                    </group>
+                                    <group string="Tiền Tiện Ích">
+                                        <field name="utilities_amount"/>
+                                        <field name="other_charges"/>
+                                    </group>
+                                </group>
+
+                                <separator string="Tóm Tắt"/>
+                                <group>
+                                    <group>
+                                        <field name="subtotal" readonly="1" string="Tổng Cộng"/>
+                                        <field name="discount_amount"/>
+                                        <field name="total_amount" readonly="1" string="Tổng Thanh Toán"/>
+                                    </group>
+                                    <group>
+                                        <field name="paid_amount" readonly="1" string="Đã Thanh Toán"/>
+                                        <field name="remaining_amount" readonly="1" string="Còn Lại"/>
+                                    </group>
+                                </group>
+                            </page>
+
+                            <!-- Tab: Thanh Toán -->
+                            <page string="Thanh Toán" name="payments">
+                                <field name="payment_ids">
+                                    <list string="Danh Sách Thanh Toán">
+                                        <field name="payment_date"/>
+                                        <field name="payment_amount"/>
+                                        <field name="payment_method"/>
+                                        <field name="notes"/>
+                                    </list>
+                                </field>
+                            </page>
+
+                            <!-- Tab: Ghi Chú -->
+                            <page string="Ghi Chú" name="notes">
+                                <field name="notes" placeholder="Ghi chú..."/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Action: Room Invoice -->
+        <record id="action_room_invoice" model="ir.actions.act_window">
+            <field name="name">Hóa Đơn</field>
+            <field name="res_model">room.invoice</field>
+            <field name="view_mode">list,form</field>
+            <field name="domain">[('status', '!=', 'canceled')]</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Tạo hóa đơn mới
+                </p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

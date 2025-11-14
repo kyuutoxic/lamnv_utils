@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Room Expense List View -->
+        <record id="view_room_expense_tree" model="ir.ui.view">
+            <field name="name">room.expense.list</field>
+            <field name="model">room.expense</field>
+            <field name="arch" type="xml">
+                <list string="Danh Sách Chi Phí">
+                    <field name="expense_date"/>
+                    <field name="room_id"/>
+                    <field name="category"/>
+                    <field name="description"/>
+                    <field name="amount" sum="Tổng Chi Phí"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- Room Expense Form View -->
+        <record id="view_room_expense_form" model="ir.ui.view">
+            <field name="name">room.expense.form</field>
+            <field name="model">room.expense</field>
+            <field name="arch" type="xml">
+                <form string="Chi Phí">
+                    <sheet>
+                        <h1>
+                            <field name="category" class="oe_inline" required="1"/>
+                        </h1>
+
+                        <group>
+                            <group>
+                                <field name="room_id" required="1"/>
+                                <field name="expense_date" required="1"/>
+                                <field name="amount" required="1"/>
+                            </group>
+                            <group>
+                                <field name="receipt_image" widget="image" class="oe_avatar"/>
+                            </group>
+                        </group>
+
+                        <field name="description" required="1" placeholder="Mô tả chi tiết..."/>
+                        <field name="notes" placeholder="Ghi chú..."/>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Action: Room Expense -->
+        <record id="action_room_expense" model="ir.actions.act_window">
+            <field name="name">Chi Phí</field>
+            <field name="res_model">room.expense</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Ghi nhận chi phí mới
+                </p>
+            </field>
+        </record>
+
+    </data>
+</odoo>
