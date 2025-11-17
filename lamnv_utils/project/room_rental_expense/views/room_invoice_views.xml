@@ -20,6 +20,29 @@
             </field>
         </record>
 
+        <!-- Room Invoice Search View -->
+        <record id="view_room_invoice_search" model="ir.ui.view">
+            <field name="name">room.invoice.search</field>
+            <field name="model">room.invoice</field>
+            <field name="arch" type="xml">
+                <search string="Tìm Kiếm Hóa Đơn">
+                    <field name="room_id"/>
+                    <field name="invoice_month"/>
+                    <field name="status"/>
+                    <filter string="Đến Hạn" name="filter_due" domain="[('due_date', '&lt;=', context_today()), ('status', '!=', 'paid')]"/>
+                    <filter string="Quá Hạn" name="filter_overdue" domain="[('status', '=', 'overdue')]"/>
+                    <filter string="Nháp" name="status_draft" domain="[('status', '=', 'draft')]"/>
+                    <filter string="Chờ" name="status_pending" domain="[('status', '=', 'pending')]"/>
+                    <filter string="Thanh Toán Một Phần" name="status_partial" domain="[('status', '=', 'partially_paid')]"/>
+                    <filter string="Đã Thanh Toán" name="status_paid" domain="[('status', '=', 'paid')]"/>
+                    <separator/>
+                    <filter string="Nhóm theo Phòng" name="group_room" context="{'group_by': 'room_id'}"/>
+                    <filter string="Nhóm theo Tháng" name="group_month" context="{'group_by': 'invoice_month'}"/>
+                    <filter string="Nhóm theo Trạng Thái" name="group_status" context="{'group_by': 'status'}"/>
+                </search>
+            </field>
+        </record>
+
         <!-- Room Invoice Form View -->
         <record id="view_room_invoice_form" model="ir.ui.view">
             <field name="name">room.invoice.form</field>
@@ -27,18 +50,16 @@
             <field name="arch" type="xml">
                 <form string="Hóa Đơn">
                     <header>
-                        <button name="action_confirm" type="object" string="Xác Nhận" class="oe_highlight"/>
-                        <button name="action_paid" type="object" string="Đã Thanh Toán" class="oe_highlight"/>
-                        <button name="action_cancel" type="object" string="Hủy"/>
+                        <button name="action_confirm" type="object" string="Xác Nhận" class="oe_highlight"
+                                invisible="status != 'draft'"/>
+                        <button name="action_paid" type="object" string="Đã Thanh Toán" class="oe_highlight"
+                                invisible="status not in ['pending', 'partially_paid', 'overdue']"/>
+                        <button name="action_cancel" type="object" string="Hủy"
+                                invisible="status in ['paid', 'canceled']"/>
+                        <button name="action_print_invoice" type="object" string="In PDF"/>
                         <field name="status" widget="statusbar" statusbar_visible="draft,pending,paid,overdue"/>
                     </header>
                     <sheet>
-                        <div class="oe_button_box" name="button_box">
-                            <button class="oe_stat_button" type="object" name="action_confirm" icon="fa-money">
-                                <field string="Thanh Toán" name="payment_ids" widget="statinfo"/>
-                            </button>
-                        </div>
-
                         <div class="oe_title">
                             <h1>
                                 <field name="invoice_number" placeholder="Số Hóa Đơn"/>
@@ -47,12 +68,14 @@
 
                         <group>
                             <group>
-                                <field name="room_id" required="1"/>
-                                <field name="invoice_month" required="1"/>
-                                <field name="invoice_date"/>
+                                <field name="room_id" required="1" readonly="status in ['paid', 'canceled']"/>
+                                <field name="invoice_month" required="1" readonly="status in ['paid', 'canceled']"/>
+                                <field name="invoice_date" readonly="status in ['paid', 'canceled']"/>
                             </group>
                             <group>
-                                <field name="due_date"/>
+                                <field name="due_date" readonly="status in ['paid', 'canceled']"/>
+                                <field name="meter_reading_id" readonly="status in ['paid', 'canceled']"/>
+                                <field name="applied_config_id" readonly="1"/>
                             </group>
                         </group>
 
@@ -61,24 +84,24 @@
                             <page string="Chi Tiết Hóa Đơn" name="invoice_details">
                                 <group>
                                     <group string="Tiền Thuê">
-                                        <field name="rent_amount" required="1"/>
+                                        <field name="rent_amount" required="1" readonly="status in ['paid', 'canceled']"/>
                                     </group>
                                     <group string="Tiền Điện">
-                                        <field name="electric_price_per_unit"/>
-                                        <field name="electric_usage"/>
+                                        <field name="electric_price_per_unit" readonly="status in ['paid', 'canceled']"/>
+                                        <field name="electric_usage" readonly="status in ['paid', 'canceled']"/>
                                         <field name="electric_amount" readonly="1"/>
                                     </group>
                                 </group>
 
                                 <group>
                                     <group string="Tiền Nước">
-                                        <field name="water_price_per_unit"/>
-                                        <field name="water_usage"/>
+                                        <field name="water_price_per_unit" readonly="status in ['paid', 'canceled']"/>
+                                        <field name="water_usage" readonly="status in ['paid', 'canceled']"/>
                                         <field name="water_amount" readonly="1"/>
                                     </group>
                                     <group string="Tiền Tiện Ích">
-                                        <field name="utilities_amount"/>
-                                        <field name="other_charges"/>
+                                        <field name="utilities_amount" readonly="status in ['paid', 'canceled']"/>
+                                        <field name="other_charges" readonly="status in ['paid', 'canceled']"/>
                                     </group>
                                 </group>
 
@@ -86,26 +109,15 @@
                                 <group>
                                     <group>
                                         <field name="subtotal" readonly="1" string="Tổng Cộng"/>
-                                        <field name="discount_amount"/>
+                                        <field name="discount_amount" readonly="status in ['paid', 'canceled']"/>
                                         <field name="total_amount" readonly="1" string="Tổng Thanh Toán"/>
                                     </group>
                                     <group>
-                                        <field name="paid_amount" readonly="1" string="Đã Thanh Toán"/>
+                                        <field name="paid_amount" string="Đã Thanh Toán"/>
                                         <field name="remaining_amount" readonly="1" string="Còn Lại"/>
+                                        <field name="manual_breakdown" placeholder="VD: Nước: 4 x 20k = 80k..." readonly="1"/>
                                     </group>
                                 </group>
-                            </page>
-
-                            <!-- Tab: Thanh Toán -->
-                            <page string="Thanh Toán" name="payments">
-                                <field name="payment_ids">
-                                    <list string="Danh Sách Thanh Toán">
-                                        <field name="payment_date"/>
-                                        <field name="payment_amount"/>
-                                        <field name="payment_method"/>
-                                        <field name="notes"/>
-                                    </list>
-                                </field>
                             </page>
 
                             <!-- Tab: Ghi Chú -->

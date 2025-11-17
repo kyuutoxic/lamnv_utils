@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
 
@@ -19,6 +18,21 @@
             </field>
         </record>
 
+        <!-- Meter Reading Search View -->
+        <record id="view_meter_reading_search" model="ir.ui.view">
+            <field name="name">meter.reading.search</field>
+            <field name="model">meter.reading</field>
+            <field name="arch" type="xml">
+                <search string="Tìm Kiếm Chỉ Số">
+                    <field name="room_id"/>
+                    <field name="reading_month"/>
+                    <filter string="Thay Công Tơ" name="filter_replaced" domain="['|', ('electric_meter_replaced', '=', True), ('water_meter_replaced', '=', True)]"/>
+                    <filter string="Nhóm theo Phòng" name="group_room" context="{'group_by': 'room_id'}"/>
+                    <filter string="Nhóm theo Tháng" name="group_month" context="{'group_by': 'reading_month'}"/>
+                </search>
+            </field>
+        </record>
+
         <!-- Meter Reading Form View -->
         <record id="view_meter_reading_form" model="ir.ui.view">
             <field name="name">meter.reading.form</field>
@@ -27,7 +41,7 @@
                 <form string="Chỉ Số Công Tơ">
                     <sheet>
                         <h1>
-                            <field name="room_id" class="oe_inline"/>
+                            <field name="room_id" class="oe_inline" readonly="invoice_id"/>
                         </h1>
                         <h3>
                             <field name="reading_month" class="oe_inline" readonly="1"/>
@@ -38,13 +52,18 @@
                             <page string="Điện" name="electric">
                                 <group>
                                     <group>
-                                        <field name="reading_date"/>
-                                        <field name="electric_previous"/>
-                                        <field name="electric_current"/>
-                                        <field name="electric_usage" readonly="1"/>
+                                        <field name="reading_date" readonly="invoice_id"/>
+                                        <field name="electric_previous" readonly="electric_meter_replaced or invoice_id"/>
+                                        <field name="electric_current" readonly="invoice_id"/>
+                                        <field name="electric_usage" readonly="not electric_usage_manual_override or invoice_id"/>
                                     </group>
                                     <group>
-                                        <field name="electric_meter_replaced"/>
+                                        <field name="electric_meter_replaced" readonly="invoice_id"/>
+                                        <field name="electric_replacement_last"
+                                               placeholder="Chỉ số cuối công tơ cũ"
+                                               invisible="not electric_meter_replaced"/>
+                                        <field name="electric_usage_manual_override" readonly="invoice_id"/>
+                                        <field name="invoice_id" options="{'no_open': False}" readonly="invoice_id"/>
                                         <field name="electric_image" widget="image" class="oe_avatar"/>
                                     </group>
                                 </group>
@@ -55,13 +74,17 @@
                             <page string="Nước" name="water">
                                 <group>
                                     <group>
-                                        <field name="reading_date"/>
-                                        <field name="water_previous"/>
-                                        <field name="water_current"/>
-                                        <field name="water_usage" readonly="1"/>
+                                        <field name="reading_date" readonly="invoice_id"/>
+                                        <field name="water_previous" readonly="water_meter_replaced or invoice_id"/>
+                                        <field name="water_current" readonly="invoice_id"/>
+                                        <field name="water_usage" readonly="not water_usage_manual_override or invoice_id"/>
                                     </group>
                                     <group>
-                                        <field name="water_meter_replaced"/>
+                                        <field name="water_meter_replaced" readonly="invoice_id"/>
+                                        <field name="water_replacement_last"
+                                               placeholder="Chỉ số cuối công tơ cũ"
+                                               invisible="not water_meter_replaced"/>
+                                        <field name="water_usage_manual_override" readonly="invoice_id"/>
                                         <field name="water_image" widget="image" class="oe_avatar"/>
                                     </group>
                                 </group>

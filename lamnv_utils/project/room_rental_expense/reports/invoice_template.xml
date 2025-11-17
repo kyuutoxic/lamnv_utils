@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_room_invoice">
+        <t t-call="web.external_layout">
+            <div class="page">
+                <h2>Hóa Đơn Phòng Trọ - <span t-esc="doc.invoice_number"/></h2>
+                <p>
+                    <strong>Phòng:</strong>
+                    <span t-esc="doc.room_id.name"/>
+                </p>
+                <p>
+                    <strong>Tháng:</strong>
+                    <span t-esc="doc.invoice_month"/>
+                </p>
+                <p>
+                    <strong>Ngày lập:</strong>
+                    <span t-esc="doc.invoice_date"/>
+                </p>
+                <p>
+                    <strong>Hạn thanh toán:</strong>
+                    <span t-esc="doc.due_date"/>
+                </p>
+                <table class="table table-sm mt16">
+                    <thead>
+                        <tr>
+                            <th>Hạng Mục</th>
+                            <th>Số Lượng</th>
+                            <th>Đơn Giá</th>
+                            <th>Thành Tiền (VND)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Tiền Thuê</td>
+                            <td>1</td>
+                            <td t-esc="doc.rent_amount"/>
+                            <td t-esc="doc.rent_amount"/>
+                        </tr>
+                        <tr>
+                            <td>Tiền Điện</td>
+                            <td t-esc="doc.electric_usage"/>
+                            <td t-esc="doc.electric_price_per_unit"/>
+                            <td t-esc="doc.electric_amount"/>
+                        </tr>
+                        <tr>
+                            <td>Tiền Nước</td>
+                            <td t-esc="doc.water_usage"/>
+                            <td t-esc="doc.water_price_per_unit"/>
+                            <td t-esc="doc.water_amount"/>
+                        </tr>
+                        <tr>
+                            <td>Tiện Ích Khác</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td t-esc="doc.utilities_amount"/>
+                        </tr>
+                        <tr>
+                            <td>Phí Khác</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td t-esc="doc.other_charges"/>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3"><strong>Tổng cộng</strong></td>
+                            <td t-esc="doc.subtotal"/>
+                        </tr>
+                        <tr>
+                            <td colspan="3"><strong>Giảm giá</strong></td>
+                            <td t-esc="doc.discount_amount"/>
+                        </tr>
+                        <tr>
+                            <td colspan="3"><strong>Tổng thanh toán</strong></td>
+                            <td t-esc="doc.total_amount"/>
+                        </tr>
+                        <tr>
+                            <td colspan="3"><strong>Đã thanh toán</strong></td>
+                            <td t-esc="doc.paid_amount"/>
+                        </tr>
+                        <tr>
+                            <td colspan="3"><strong>Còn lại</strong></td>
+                            <td t-esc="doc.remaining_amount"/>
+                        </tr>
+                    </tfoot>
+                </table>
+                <p class="mt8" t-if="doc.manual_breakdown">
+                    <strong>Chi tiết:</strong>
+                    <span t-esc="doc.manual_breakdown"/>
+                </p>
+                <p class="mt16">
+                    <strong>Ghi chú:</strong>
+                    <span t-esc="doc.notes"/>
+                </p>
+            </div>
+        </t>
+    </template>
+
+    <report
+        id="report_room_invoice_pdf"
+        model="room.invoice"
+        report_type="qweb-pdf"
+        name="room_rental_expense.report_room_invoice"
+        file="room_rental_expense.report_room_invoice"
+        print_report_name="'Invoice - %s' % (object.invoice_number or '')"
+        string="In Hóa Đơn"
+    />
+</odoo>

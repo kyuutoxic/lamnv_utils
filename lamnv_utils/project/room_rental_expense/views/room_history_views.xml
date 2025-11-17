@@ -9,11 +9,13 @@
             <field name="arch" type="xml">
                 <list string="Danh Sách Lịch Sử Phòng">
                     <field name="name"/>
+                    <field name="room_id"/>
                     <field name="from_date"/>
                     <field name="to_date"/>
                     <field name="landlord_name"/>
                     <field name="landlord_phone"/>
                     <field name="avg_rent"/>
+                    <field name="total_spent"/>
                 </list>
             </field>
         </record>
@@ -31,6 +33,7 @@
 
                         <group>
                             <group>
+                                <field name="room_id"/>
                                 <field name="from_date"/>
                                 <field name="to_date"/>
                             </group>
@@ -38,6 +41,7 @@
                                 <field name="landlord_name"/>
                                 <field name="landlord_phone"/>
                                 <field name="avg_rent"/>
+                                <field name="total_spent" readonly="1"/>
                             </group>
                         </group>
 

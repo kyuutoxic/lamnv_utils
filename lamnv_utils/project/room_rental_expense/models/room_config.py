@@ -1,12 +1,18 @@
 # -*- coding: utf-8 -*-
-from odoo import models, fields
+from odoo import models, fields, api
 
 
 class RoomConfig(models.Model):
     _name = 'room.config'
     _description = 'Cấu Hình Giá Phòng Trọ'
+    _rec_name = 'name'
     _order = 'effective_date desc'
 
+    name = fields.Char(
+        string='Tên',
+        compute='_compute_name',
+        store=True
+    )
     room_id = fields.Many2one(
         'rental.room',
         string='Phòng Trọ',
@@ -42,3 +48,13 @@ class RoomConfig(models.Model):
         default=0
     )
     notes = fields.Text(string='Ghi Chú')
+
+    @api.depends('room_id', 'effective_date')
+    def _compute_name(self):
+        for config in self:
+            parts = []
+            if config.room_id:
+                parts.append(config.room_id.name)
+            if config.effective_date:
+                parts.append(config.effective_date.strftime('%d/%m/%Y'))
+            config.name = ' - '.join(parts) if parts else 'Cấu Hình'

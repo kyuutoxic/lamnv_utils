@@ -55,6 +55,7 @@
                                         <field name="building_name" string="Tên Nhà"/>
                                         <field name="room_type" string="Loại Phòng"/>
                                         <field name="area" string="Diện Tích (m²)"/>
+                                        <field name="default_rent" string="Tiền Thuê Mặc Định"/>
                                     </group>
                                     <group>
                                         <field name="start_date" string="Ngày Bắt Đầu"/>
@@ -83,23 +84,9 @@
                                 </group>
                             </page>
 
-                            <!-- Tab: Tổng Hợp Tài Chính -->
-                            <page string="Tài Chính" name="financial">
-                                <group>
-                                    <group>
-                                        <field name="total_invoiced" readonly="1" string="Tổng Tiền Hóa Đơn"/>
-                                        <field name="total_paid" readonly="1" string="Tổng Tiền Thanh Toán"/>
-                                    </group>
-                                    <group>
-                                        <field name="total_remaining" readonly="1" string="Tổng Tiền Nợ"/>
-                                        <field name="total_expenses" readonly="1" string="Tổng Chi Phí"/>
-                                    </group>
-                                </group>
-                            </page>
-
                             <!-- Tab: Hóa Đơn -->
                             <page string="Hóa Đơn" name="invoices">
-                                <field name="invoice_ids">
+                                <field name="invoice_ids" context="{'default_room_id': id}">
                                     <list string="Danh Sách Hóa Đơn">
                                         <field name="invoice_number"/>
                                         <field name="invoice_month"/>
@@ -113,7 +100,7 @@
 
                             <!-- Tab: Chỉ Số Công Tơ -->
                             <page string="Chỉ Số Công Tơ" name="meter_readings">
-                                <field name="meter_reading_ids">
+                                <field name="meter_reading_ids" context="{'default_room_id': id}">
                                     <list string="Danh Sách Chỉ Số">
                                         <field name="reading_date"/>
                                         <field name="electric_current"/>
@@ -126,7 +113,7 @@
 
                             <!-- Tab: Chi Phí -->
                             <page string="Chi Phí" name="expenses">
-                                <field name="expense_ids">
+                                <field name="expense_ids" context="{'default_room_id': id}">
                                     <list string="Danh Sách Chi Phí">
                                         <field name="expense_date"/>
                                         <field name="category"/>
@@ -138,7 +125,7 @@
 
                             <!-- Tab: Tiền Cọc -->
                             <page string="Tiền Cọc" name="deposits">
-                                <field name="deposit_ids">
+                                <field name="deposit_ids" context="{'default_room_id': id}">
                                     <list string="Danh Sách Tiền Cọc">
                                         <field name="deposit_date"/>
                                         <field name="deposit_amount"/>
@@ -150,7 +137,7 @@
 
                             <!-- Tab: Sự Cố -->
                             <page string="Sự Cố" name="issues">
-                                <field name="issue_ids">
+                                <field name="issue_ids" context="{'default_room_id': id}">
                                     <list string="Danh Sách Sự Cố">
                                         <field name="issue_date"/>
                                         <field name="category"/>

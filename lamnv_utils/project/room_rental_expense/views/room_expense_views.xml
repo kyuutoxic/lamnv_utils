@@ -46,6 +46,21 @@
             </field>
         </record>
 
+        <!-- Expense Search View -->
+        <record id="view_room_expense_search" model="ir.ui.view">
+            <field name="name">room.expense.search</field>
+            <field name="model">room.expense</field>
+            <field name="arch" type="xml">
+                <search string="Tìm Kiếm Chi Phí">
+                    <field name="room_id"/>
+                    <field name="category"/>
+                    <separator string="Nhóm theo"/>
+                    <filter string="Phòng" name="group_room" context="{'group_by': 'room_id'}"/>
+                    <filter string="Danh Mục" name="group_category" context="{'group_by': 'category'}"/>
+                </search>
+            </field>
+        </record>
+
         <!-- Action: Room Expense -->
         <record id="action_room_expense" model="ir.actions.act_window">
             <field name="name">Chi Phí</field>

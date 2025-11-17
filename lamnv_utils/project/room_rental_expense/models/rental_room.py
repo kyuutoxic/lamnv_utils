@@ -5,6 +5,7 @@ from odoo import models, fields, api
 class RentalRoom(models.Model):
     _name = 'rental.room'
     _description = 'Phòng Trọ'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'name'
 
     name = fields.Char(
@@ -52,6 +53,10 @@ class RentalRoom(models.Model):
     landlord_favorite = fields.Boolean(
         string='Đánh Dấu',
         default=False
+    )
+    default_rent = fields.Float(
+        string='Tiền Thuê Mặc Định (VND)',
+        tracking=True
     )
 
     # Relationships
@@ -164,3 +169,14 @@ class RentalRoom(models.Model):
             'domain': [('room_id', '=', self.id)],
             'context': {'default_room_id': self.id}
         }
+
+    def _get_active_config(self, reference_date=None):
+        self.ensure_one()
+        domain = [('room_id', '=', self.id)]
+        if reference_date:
+            domain.append(('effective_date', '<=', reference_date))
+        return self.env['room.config'].search(
+            domain,
+            order='effective_date desc',
+            limit=1
+        )

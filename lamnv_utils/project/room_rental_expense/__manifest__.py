@@ -18,15 +18,20 @@
         - Dashboard tổng hợp
     """,
     'author': 'lamnv',
-    'depends': ['base', 'web'],
+    'depends': ['base', 'web', 'mail'],
     'data': [
         # ================ SECURITY ================
         'security/ir.model.access.csv',
+        # ================ DATA ================
+        'data/room_sequence.xml',
+        'data/room_config_data.xml',
+        'data/cron_data.xml',
+        # ================ REPORTS ================
+        'reports/invoice_template.xml',
         # ================ VIEWS ================
         'views/rental_room_views.xml',
         'views/meter_reading_views.xml',
         'views/room_invoice_views.xml',
-        'views/room_payment_views.xml',
         'views/room_expense_views.xml',
         'views/room_config_views.xml',
         'views/room_history_views.xml',

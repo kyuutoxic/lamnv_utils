@@ -1,7 +1,6 @@
 from . import rental_room
 from . import meter_reading
 from . import room_invoice
-from . import room_payment
 from . import room_expense
 from . import room_config
 from . import room_history

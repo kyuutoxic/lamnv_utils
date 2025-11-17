@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Default price fallbacks when a room does not yet have specific configs -->
+        <record id="param_default_electric_price" model="ir.config_parameter">
+            <field name="key">room_rental_expense.default_electric_price</field>
+            <field name="value">3500</field>
+        </record>
+        <record id="param_default_water_price" model="ir.config_parameter">
+            <field name="key">room_rental_expense.default_water_price</field>
+            <field name="value">15000</field>
+        </record>
+        <record id="param_default_wifi_price" model="ir.config_parameter">
+            <field name="key">room_rental_expense.default_wifi_price</field>
+            <field name="value">150000</field>
+        </record>
+        <record id="param_default_trash_fee" model="ir.config_parameter">
+            <field name="key">room_rental_expense.default_trash_fee</field>
+            <field name="value">30000</field>
+        </record>
+        <record id="param_default_reminder_days" model="ir.config_parameter">
+            <field name="key">room_rental_expense.reminder_days</field>
+            <field name="value">3</field>
+        </record>
+    </data>
+</odoo>

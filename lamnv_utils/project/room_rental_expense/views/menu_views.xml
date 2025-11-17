@@ -10,7 +10,6 @@
         <menuitem id="rental_room_menu" name="Phòng Trọ" parent="room_rental_manage_menu" action="action_rental_room" sequence="1"/>
         <menuitem id="meter_reading_menu" name="Chỉ Số Công Tơ" parent="room_rental_manage_menu" action="action_meter_reading" sequence="2"/>
         <menuitem id="room_invoice_menu" name="Hóa Đơn" parent="room_rental_manage_menu" action="action_room_invoice" sequence="3"/>
-        <menuitem id="room_payment_menu" name="Thanh Toán" parent="room_rental_manage_menu" action="action_room_payment" sequence="4"/>
 
         <!-- Submenu: Chi Phí -->
         <menuitem id="room_rental_expense_menu" name="Chi Phí &amp; Khác" parent="room_rental_menu" sequence="20"/>
@@ -27,6 +26,22 @@
 
         <!-- Submenu: Báo Cáo -->
         <menuitem id="room_rental_report_menu" name="Báo Cáo" parent="room_rental_menu" sequence="40"/>
+
+        <record id="action_room_invoice_report" model="ir.actions.act_window">
+            <field name="name">Báo Cáo Hóa Đơn</field>
+            <field name="res_model">room.invoice</field>
+            <field name="view_mode">pivot,graph,list</field>
+            <field name="context">{'search_default_group_month': 1}</field>
+        </record>
+        <menuitem id="room_invoice_report_menu" name="Hóa Đơn" parent="room_rental_report_menu" action="action_room_invoice_report" sequence="1"/>
+
+        <record id="action_room_expense_report" model="ir.actions.act_window">
+            <field name="name">Báo Cáo Chi Phí</field>
+            <field name="res_model">room.expense</field>
+            <field name="view_mode">pivot,graph,list</field>
+            <field name="context">{'search_default_group_category': 1}</field>
+        </record>
+        <menuitem id="room_expense_report_menu" name="Chi Phí" parent="room_rental_report_menu" action="action_room_expense_report" sequence="2"/>
 
     </data>
 </odoo>
