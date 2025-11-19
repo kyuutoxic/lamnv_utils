@@ -10,10 +10,10 @@
                 <list string="Danh Sách Cấu Hình Giá">
                     <field name="room_id"/>
                     <field name="effective_date"/>
-                    <field name="electric_price"/>
-                    <field name="water_price"/>
-                    <field name="wifi_price"/>
-                    <field name="trash_fee"/>
+                    <field name="electric_price" widget="vnd_currency"/>
+                    <field name="water_price" widget="vnd_currency"/>
+                    <field name="wifi_price" widget="vnd_currency"/>
+                    <field name="trash_fee" widget="vnd_currency"/>
                 </list>
             </field>
         </record>
@@ -32,14 +32,14 @@
                         <group>
                             <group>
                                 <field name="effective_date" required="1"/>
-                                <field name="electric_price" required="1"/>
-                                <field name="water_price" required="1"/>
+                                <field name="electric_price" widget="vnd_currency" required="1"/>
+                                <field name="water_price" widget="vnd_currency" required="1"/>
                             </group>
                             <group>
-                                <field name="wifi_price"/>
-                                <field name="trash_fee"/>
-                                <field name="parking_fee"/>
-                                <field name="other_utilities_price"/>
+                                <field name="wifi_price" widget="vnd_currency"/>
+                                <field name="trash_fee" widget="vnd_currency"/>
+                                <field name="parking_fee" widget="vnd_currency"/>
+                                <field name="other_utilities_price" widget="vnd_currency"/>
                             </group>
                         </group>
 

@@ -1,0 +1,59 @@
+# ==============================================================================
+# Room Rental Expense Project Specific .gitignore
+# ==============================================================================
+
+# ================================
+# Python cache files
+# ================================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# ================================
+# Odoo specific files
+# ================================
+# Log files
+*.log
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# ================================
+# Development files  
+# ================================
+# Testing and debugging
+test_*.py
+debug_*.py
+
+# Temporary files
+*.tmp
+*.temp
+
+# ================================
+# User uploaded content
+# ================================
+# Receipt images and proof uploads
+static/uploads/
+static/user_uploads/
+
+# Generated reports
+reports/generated/
+exports/
+
+# ================================
+# Configuration overrides
+# ================================
+# Local config overrides (keep template)
+local_config.py
+!config_template.py
+
+# ================================
+# IDE files
+# ================================
+.idea/
+.vscode/
+*.swp
+*.swo

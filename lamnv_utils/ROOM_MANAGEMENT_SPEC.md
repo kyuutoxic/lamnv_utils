@@ -89,26 +89,11 @@
 - `notes` (Text) - Ghi chú
 
 **Relationships**:
-- `payment_records` (One2Many) → room_payment
+- Không có relationship phức tạp (thanh toán được quản lý trực tiếp trong hóa đơn)
 
 ---
 
-### A. 4. Model: Thanh Toán (room_payment)
-**Chức năng**: Ghi nhận các lần thanh toán tiền phòng
-
-**Fields**:
-- `invoice_id` (Many2One) → room_invoice [required]
-- `room_id` (Many2One) → rental_room
-- `payment_date` (Date) - Ngày thanh toán [required]
-- `payment_amount` (Float) - Số tiền thanh toán (VND) [required]
-- `payment_method` (Selection) - Phương thức: "cash", "bank_transfer", "e_wallet", "check", "other"
-- `transaction_id` (Char) - Mã giao dịch (nếu chuyển khoản)
-- `payment_proof_image` (Binary) - Ảnh chứng minh thanh toán (chụp màn hình ngân hàng, hóa đơn, giấy xác nhận, ảnh tiền mặt)
-- `notes` (Text) - Ghi chú (VD: "Chuyển qua tài khoản Ngân hàng X", "Thanh toán 500k tiền điện tháng 12")
-
----
-
-### A. 5. Model: Chi Phí Khác (room_expense)
+### A. 4. Model: Chi Phí Khác (room_expense)
 **Chức năng**: Quản lý chi phí phòng phát sinh khác ngoài hóa đơn hàng tháng (sửa chữa, vệ sinh, mua đồ...)
 
 **Fields**:
@@ -131,7 +116,7 @@
 
 ---
 
-### A. 6. Model: Cấu Hình Phòng (room_config)
+### A. 5. Model: Cấu Hình Phòng (room_config)
 **Chức năng**: Lưu giá điện, nước hiện tại để tính hóa đơn nhanh
 
 **Fields**:
@@ -147,7 +132,7 @@
 
 ---
 
-### A. 7. Model: Lịch Sử Phòng (room_history) [Optional - để theo dõi các phòng đã thuê]
+### A. 6. Model: Lịch Sử Phòng (room_history) [Optional - để theo dõi các phòng đã thuê]
 **Chức năng**: Ghi lại lịch sử các phòng trọ mà bạn đã thuê
 
 **Fields**:
@@ -196,27 +181,12 @@
   - Theo khoảng thời gian
 - [ ] Xem chi tiết hóa đơn (layout chuyên nghiệp)
 - [ ] Thay đổi trạng thái hóa đơn (draft → pending → paid)
+- [ ] Ghi nhận thanh toán trực tiếp trong hóa đơn (field `paid_amount`)
 - [ ] Export PDF hóa đơn
 - [ ] In hóa đơn
 - [ ] Thêm ghi chú trên hóa đơn (vấn đề với nước, điện...)
 
-### 4. Quản Lý Thanh Toán
-- [ ] Ghi nhận thanh toán tiền phòng
-- [ ] Auto-update `paid_amount`, `remaining_amount`
-- [ ] Auto-update invoice status khi thanh toán đủ
-- [ ] Liệt kê thanh toán với bộ lọc:
-  - Theo phòng
-  - Theo ngày
-  - Theo phương thức thanh toán
-  - Theo tháng
-- [ ] Xem chi tiết thanh toán
-- [ ] Sửa thanh toán (draft status)
-- [ ] Xóa thanh toán (draft status)
-- [ ] Tải ảnh chứng minh thanh toán (chụp màn hình, biên lai)
-- [ ] In phiếu thanh toán
-- [ ] Export danh sách thanh toán
-
-### 5. Quản Lý Chi Phí Khác
+### 4. Quản Lý Chi Phí Khác
 - [ ] Thêm chi phí phát sinh (sửa quạt, mua bóng đèn, vệ sinh...)
 - [ ] Sửa chi phí
 - [ ] Xóa chi phí
@@ -229,13 +199,13 @@
 - [ ] Tính tổng chi phí theo tháng/năm
 - [ ] Export danh sách chi phí
 
-### 6. Cấu Hình Giá Tiện Ích
+### 5. Cấu Hình Giá Tiện Ích
 - [ ] Lưu giá điện, nước hiện tại
 - [ ] Cấu hình giá wifi, phí rác, phí gửi xe, tiện ích khác
 - [ ] Lịch sử thay đổi giá (để so sánh)
 - [ ] Đặt ngày có hiệu lực
 
-### 7. Báo Cáo & Thống Kê
+### 6. Báo Cáo & Thống Kê
 - [ ] **Báo cáo hóa đơn tháng**: tổng tiền phòng, tiền điện, tiền nước, tổng cộng
 - [ ] **Báo cáo thanh toán**: tổng đã thanh toán, nợ còn lại, hóa đơn quá hạn
 - [ ] **Báo cáo chi phí**: tổng chi phí theo danh mục, chi phí trung bình/tháng
@@ -246,31 +216,31 @@
 - [ ] Biểu đồ doanh thu, chi phí, nợ theo tháng
 - [ ] Biểu đồ sử dụng điện/nước theo tháng
 
-### 8. Thông Báo & Nhắc Nhở
+### 7. Thông Báo & Nhắc Nhở
 - [ ] Nhắc nhở hóa đơn sắp đến hạn (N ngày trước)
 - [ ] Cảnh báo hóa đơn quá hạn
 - [ ] Nhắc nhở thanh toán qua notification
 
-### 9. Lịch Sử Phòng Trọ
+### 8. Lịch Sử Phòng Trọ
 - [ ] Ghi lại các phòng trọ đã/đang thuê
 - [ ] Lưu thông tin chủ phòng (để liên hệ lại)
 - [ ] Ghi chú về chất lượng phòng, chủ phòng
 - [ ] Tính toán tổng chi phí cho mỗi phòng
 
-### 10. Cấu Hình Chung
+### 9. Cấu Hình Chung
 - [ ] Lưu thông tin cá nhân (tên, email, phone)
 - [ ] Cấu hình template hóa đơn
 - [ ] Cấu hình thông báo tự động
 
-### 11. Công Cụ Khác
+### 10. Công Cụ Khác
 - [ ] Import dữ liệu từ Excel (hóa đơn, chi phí)
 - [ ] Export danh sách hóa đơn, thanh toán, chi phí theo định dạng Excel
 - [ ] Backup dữ liệu
 - [ ] Xóa dữ liệu cũ (tuỳ chọn)
 
-### 12. Tính Năng Bổ Sung (Recommended)
+### 11. Tính Năng Bổ Sung (Recommended)
 
-#### 12.1 Model: Tiền Cọc (room_deposit)
+#### 11.1 Model: Tiền Cọc (room_deposit)
 **Chức năng**: Quản lý tiền cọc - theo dõi khi nào bạn đã nộp, bao nhiêu tiền, và khi nào sẽ được hoàn lại
 
 **Fields**:
@@ -286,7 +256,7 @@
 
 **Tại sao cần**: Tiền cọc có khi bị chủ trọ giữ lại, hoặc hoàn không đủ. Bạn cần track để không bị mất
 
-#### 12.2 Thêm Field: Mối Liên Hệ Người Thuê
+#### 11.2 Thêm Field: Mối Liên Hệ Người Thuê
 **Chức năng**: Lưu lại đường dây liên lạc khẩn cấp với chủ phòng
 
 **Fields thêm vào rental_room**:
@@ -296,7 +266,7 @@
 
 **Tại sao cần**: Bạn cần biết chuyển tiền cho chủ trọ qua ngân hàng nào, account nào
 
-#### 12.3 Thêm Tính Năng: Lịch Thanh Toán Tự Động Nhắc Nhở
+#### 11.3 Thêm Tính Năng: Lịch Thanh Toán Tự Động Nhắc Nhở
 **Chức năng**: Hệ thống tự động nhắc nhở bạn thanh toán trước deadline
 
 **Chi tiết**:
@@ -307,7 +277,7 @@
 
 **Tại sao cần**: Bạn sẽ không bao giờ quên thanh toán hóa đơn
 
-#### 12.4 Thêm Model: Ghi Chú Sự Cố (room_issue)
+#### 11.4 Thêm Model: Ghi Chú Sự Cố (room_issue)
 **Chức năng**: Ghi lại những sự cố, vấn đề xảy ra trong phòng để liên hệ với chủ trọ
 
 **Fields**:
@@ -334,7 +304,7 @@
 - Nếu chủ trọ tính tiền sửa chữa, bạn có bằng chứng
 - Theo dõi độ uy tín của chủ trọ (sửa chữa nhanh hay chậm)
 
-#### 12.5 Dashboard Tổng Hợp
+#### 11.5 Dashboard Tổng Hợp
 **Chức năng**: Một màn hình tổng quát hiển thị tình hình tài chính của bạn
 
 **Hiển thị**:
@@ -383,21 +353,16 @@
 - [ ] Pivot View: Báo cáo doanh thu chi tiêu
 - [ ] Graph View: Biểu đồ doanh thu, chi tiêu
 
-### 4. Views cho Thanh Toán (room_payment)
-- [ ] List View: Danh sách thanh toán
-- [ ] Form View: Chi tiết thanh toán (có field tải ảnh chứng minh)
-- [ ] Timeline View: Hiển thị lịch thanh toán
-
-### 5. Views cho Chi Phí (room_expense)
+### 4. Views cho Chi Phí (room_expense)
 - [ ] List View: Danh sách chi phí, filter theo danh mục/tháng
 - [ ] Form View: Chi tiết chi phí (có field tải ảnh hóa đơn)
 - [ ] Graph View: Biểu đồ chi phí theo danh mục
 
-### 6. Views cho Cấu Hình (room_config)
+### 5. Views cho Cấu Hình (room_config)
 - [ ] List View: Danh sách giá tiện ích
 - [ ] Form View: Chi tiết giá (để cập nhật giá điện, nước...)
 
-### 7. Views cho Lịch Sử (room_history)
+### 6. Views cho Lịch Sử (room_history)
 - [ ] List View: Danh sách phòng đã thuê
 - [ ] Form View: Chi tiết phòng (tên, chủ phòng, thời gian, giá tiền)
 
@@ -412,7 +377,7 @@ Thêm phòng mới → Lưu thông tin chủ phòng → Lưu giá tiện ích �
 
 ### 2. Quy trình tính tiền hàng tháng
 ```
-Ghi chỉ số công tơ (điện, nước) → Tạo hóa đơn → Xem chi tiết → Ghi nhận thanh toán → Update trạng thái
+Ghi chỉ số công tơ (điện, nước) → Tạo hóa đơn → Xem chi tiết → Ghi nhận thanh toán trực tiếp trong hóa đơn → Update trạng thái
 ```
 
 ### 3. Quy trình ghi nhận chi phí phát sinh
@@ -436,7 +401,7 @@ Xem báo cáo hóa đơn → Xem báo cáo thanh toán (nợ) → Xem báo cáo 
 - [ ] Tương tự với nước: kiểm tra `water_meter_replaced`
 - [ ] Ngày kết thúc phòng phải lớn hơn ngày bắt đầu (nếu có)
 - [ ] Hóa đơn không được xóa nếu đã thanh toán
-- [ ] Không được thêm thanh toán nếu hóa đơn đã thanh toán đủ
+- [ ] Không được thêm thanh toán vượt quá tổng hóa đơn
 - [ ] Giá điện, nước phải > 0
 - [ ] Không được tạo hóa đơn nếu không có chỉ số công tơ
 - [ ] Email phải đúng định dạng (nếu có)
@@ -573,18 +538,20 @@ lamnv_utils/addons/room_rental_expense/
 │   ├── rental_room.py
 │   ├── meter_reading.py
 │   ├── room_invoice.py
-│   ├── room_payment.py
 │   ├── room_expense.py
 │   ├── room_config.py
-│   └── room_history.py
+│   ├── room_history.py
+│   ├── room_deposit.py
+│   └── room_issue.py
 ├── views/
 │   ├── rental_room_views.xml
 │   ├── meter_reading_views.xml
 │   ├── room_invoice_views.xml
-│   ├── room_payment_views.xml
 │   ├── room_expense_views.xml
 │   ├── room_config_views.xml
 │   ├── room_history_views.xml
+│   ├── room_deposit_views.xml
+│   ├── room_issue_views.xml
 │   ├── menu_views.xml
 │   └── actions.xml
 ├── reports/
@@ -610,7 +577,7 @@ lamnv_utils/addons/room_rental_expense/
 │   ├── __init__.py
 │   ├── test_room.py
 │   ├── test_invoice.py
-│   ├── test_payment.py
+│   ├── test_expense.py
 │   └── test_calculations.py
 └── README.md
 ```

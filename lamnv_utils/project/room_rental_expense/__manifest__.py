@@ -41,6 +41,11 @@
         'views/menu_views.xml',
     ],
     'demo': [],
+    'assets': {
+        'web.assets_backend': [
+            'room_rental_expense/static/src/js/currency_widget.js',
+        ],
+    },
     'installable': True,
     'application': True,
     'auto_install': False,

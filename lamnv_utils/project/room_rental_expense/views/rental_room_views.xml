@@ -13,9 +13,9 @@
                     <field name="landlord_name"/>
                     <field name="start_date"/>
                     <field name="end_date"/>
-                    <field name="total_invoiced" sum="Total Invoiced"/>
-                    <field name="total_paid" sum="Total Paid"/>
-                    <field name="total_remaining" sum="Remaining"/>
+                    <field name="total_invoiced" widget="vnd_currency" sum="Total Invoiced"/>
+                    <field name="total_paid" widget="vnd_currency" sum="Total Paid"/>
+                    <field name="total_remaining" widget="vnd_currency" sum="Remaining"/>
                 </list>
             </field>
         </record>
@@ -54,8 +54,8 @@
                                         <field name="room_number" string="Số Phòng"/>
                                         <field name="building_name" string="Tên Nhà"/>
                                         <field name="room_type" string="Loại Phòng"/>
-                                        <field name="area" string="Diện Tích (m²)"/>
-                                        <field name="default_rent" string="Tiền Thuê Mặc Định"/>
+                                        <field name="area" string="Diện Tích (m²)" widget="number_format"/>
+                                        <field name="default_rent" string="Tiền Thuê Mặc Định" widget="vnd_currency"/>
                                     </group>
                                     <group>
                                         <field name="start_date" string="Ngày Bắt Đầu"/>
@@ -90,9 +90,9 @@
                                     <list string="Danh Sách Hóa Đơn">
                                         <field name="invoice_number"/>
                                         <field name="invoice_month"/>
-                                        <field name="total_amount"/>
-                                        <field name="paid_amount"/>
-                                        <field name="remaining_amount"/>
+                                        <field name="total_amount" widget="vnd_currency"/>
+                                        <field name="paid_amount" widget="vnd_currency"/>
+                                        <field name="remaining_amount" widget="vnd_currency"/>
                                         <field name="status"/>
                                     </list>
                                 </field>
@@ -103,10 +103,10 @@
                                 <field name="meter_reading_ids" context="{'default_room_id': id}">
                                     <list string="Danh Sách Chỉ Số">
                                         <field name="reading_date"/>
-                                        <field name="electric_current"/>
-                                        <field name="electric_usage"/>
-                                        <field name="water_current"/>
-                                        <field name="water_usage"/>
+                                        <field name="electric_current" widget="number_format"/>
+                                        <field name="electric_usage" widget="number_format"/>
+                                        <field name="water_current" widget="number_format"/>
+                                        <field name="water_usage" widget="number_format"/>
                                     </list>
                                 </field>
                             </page>
@@ -118,7 +118,7 @@
                                         <field name="expense_date"/>
                                         <field name="category"/>
                                         <field name="description"/>
-                                        <field name="amount"/>
+                                        <field name="amount" widget="vnd_currency"/>
                                     </list>
                                 </field>
                             </page>
@@ -128,9 +128,9 @@
                                 <field name="deposit_ids" context="{'default_room_id': id}">
                                     <list string="Danh Sách Tiền Cọc">
                                         <field name="deposit_date"/>
-                                        <field name="deposit_amount"/>
+                                        <field name="deposit_amount" widget="vnd_currency"/>
                                         <field name="status"/>
-                                        <field name="return_amount"/>
+                                        <field name="return_amount" widget="vnd_currency"/>
                                     </list>
                                 </field>
                             </page>
@@ -162,38 +162,147 @@
             <field name="name">rental.room.kanban</field>
             <field name="model">rental.room</field>
             <field name="arch" type="xml">
-                <kanban string="Phòng Trọ">
+                <kanban string="Phòng Trọ" class="o_kanban_small_column">
+                    <style>
+                        /* CSS để format số tiền trong Kanban */
+                        .vnd-currency {
+                            position: relative;
+                        }
+                        .vnd-currency::after {
+                            content: " ₫";
+                        }
+                    </style>
                     <field name="id"/>
                     <field name="name"/>
+                    <field name="room_number"/>
                     <field name="building_name"/>
                     <field name="landlord_name"/>
+                    <field name="landlord_phone"/>
+                    <field name="area"/>
+                    <field name="room_type"/>
+                    <field name="start_date"/>
+                    <field name="end_date"/>
+                    <field name="default_rent"/>
                     <field name="total_invoiced"/>
+                    <field name="total_paid"/>
                     <field name="total_remaining"/>
+                    <field name="total_invoiced_fmt"/>
+                    <field name="total_remaining_fmt"/>
+                    <field name="default_rent_fmt"/>
+                    <field name="invoice_ids"/>
+                    <field name="meter_reading_ids"/>
+                    <field name="image"/>
                     <templates>
                         <t t-name="card">
-                            <div class="oe_kanban_card oe_kanban_global_click">
-                                <div class="oe_kanban_card_header">
-                                    <span class="oe_kanban_record_title">
-                                        <strong t-esc="record.name.value"/>
-                                    </span>
+                            <div class="oe_kanban_card oe_kanban_global_click" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: transform 0.2s, box-shadow 0.2s; margin: 8px;">
+                                <!-- Header with room image and status -->
+                                <div class="oe_kanban_card_header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 12px 12px 0 0; position: relative;">
+                                    <!-- Room Image -->
+                                    <div style="position: absolute; top: 10px; right: 10px;">
+                                        <img t-if="record.image.raw_value" 
+                                             t-att-src="'/web/image/rental.room/'+record.id.value+'/image'" 
+                                             t-att-alt="'Ảnh phòng ' + record.name.value"
+                                             style="width: 45px; height: 45px; border-radius: 50%; border: 2px solid white; object-fit: cover;"/>
+                                        <div t-else="" style="width: 45px; height: 45px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                                            🏠
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Room Title -->
+                                    <div style="margin-right: 55px;">
+                                        <h3 style="margin: 0; font-size: 16px; font-weight: bold;">
+                                            <t t-esc="record.name.value"/>
+                                        </h3>
+                                        <div style="font-size: 12px; opacity: 0.9; margin-top: 2px;">
+                                            <span t-if="record.room_number.value">Phòng <t t-esc="record.room_number.value"/> • </span>
+                                            <span t-esc="record.room_type.value" style="text-transform: capitalize;"/>
+                                            <span t-if="record.area.value"> • <t t-esc="record.area.value"/>m²</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Status Badge -->
+                                    <div t-if="record.end_date.value" style="position: absolute; top: -8px; left: 15px;">
+                                        <span class="badge badge-warning" style="font-size: 10px; padding: 4px 8px; border-radius: 12px;">
+                                            Sắp hết hạn
+                                        </span>
+                                    </div>
                                 </div>
-                                <div class="oe_kanban_card_body">
-                                    <p>
-                                        <strong>Chủ phòng:</strong>
-                                        <span t-esc="record.landlord_name.value"/>
-                                    </p>
-                                    <p>
-                                        <strong>Nhà:</strong>
-                                        <span t-esc="record.building_name.value"/>
-                                    </p>
-                                    <p>
-                                        <strong>Tổng tiền:</strong>
-                                        <span t-esc="record.total_invoiced.value"/>
-                                    </p>
-                                    <p t-if="record.total_remaining.value">
-                                        <strong style="color:red;">Nợ:</strong>
-                                        <span style="color:red;" t-esc="record.total_remaining.value"/>
-                                    </p>
+
+                                <!-- Body Content -->
+                                <div class="oe_kanban_card_body" style="padding: 15px;">
+                                    <!-- Building Info -->
+                                    <div style="margin-bottom: 12px;">
+                                        <div style="display: flex; align-items: center; margin-bottom: 6px;">
+                                            <i class="fa fa-building-o" style="color: #6c757d; margin-right: 8px; width: 16px;"></i>
+                                            <span style="font-weight: 500; color: #495057;">
+                                                <t t-if="record.building_name.value" t-esc="record.building_name.value"/>
+                                                <t t-else="">Chưa có thông tin</t>
+                                            </span>
+                                        </div>
+                                        <div style="display: flex; align-items: center;">
+                                            <i class="fa fa-user" style="color: #6c757d; margin-right: 8px; width: 16px;"></i>
+                                            <span style="color: #6c757d; font-size: 13px;">
+                                                <t t-if="record.landlord_name.value" t-esc="record.landlord_name.value"/>
+                                                <t t-else="">Chưa có thông tin</t>
+                                            </span>
+                                            <span t-if="record.landlord_phone.value" style="margin-left: auto; color: #28a745; font-size: 12px;">
+                                                📞 <t t-esc="record.landlord_phone.value"/>
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Financial Summary -->
+                                    <div style="background: #f8f9fa; border-radius: 8px; padding: 12px; margin-bottom: 10px;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                            <span style="font-size: 12px; color: #6c757d; font-weight: 500;">TÌNH HÌNH TÀI CHÍNH</span>
+                                            <span t-if="record.default_rent.value" style="font-size: 11px; color: #6c757d;">
+                                                Tiền phòng: <strong><t t-esc="record.default_rent_fmt.value"/> ₫</strong>
+                                            </span>
+                                        </div>
+                                        
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                                            <!-- Total Invoiced -->
+                                            <div style="text-align: center; padding: 8px; background: white; border-radius: 6px; border-left: 3px solid #007bff;">
+                                                <div style="font-size: 11px; color: #6c757d; margin-bottom: 2px;">Tổng hóa đơn</div>
+                                                <div style="font-size: 13px; font-weight: bold; color: #007bff;">
+                                                    <t t-esc="record.total_invoiced_fmt.value"/> ₫
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Remaining Amount -->
+                                            <div t-attf-style="text-align: center; padding: 8px; background: white; border-radius: 6px; border-left: 3px solid #{record.total_remaining.raw_value > 0 ? '#dc3545' : '#28a745'};">
+                                                <div style="font-size: 11px; color: #6c757d; margin-bottom: 2px;">
+                                                    <t t-if="record.total_remaining.raw_value > 0">Còn nợ</t>
+                                                    <t t-else="">Đã thanh toán</t>
+                                                </div>
+                                                <div t-attf-style="font-size: 13px; font-weight: bold; color: #{record.total_remaining.raw_value > 0 ? '#dc3545' : '#28a745'};">
+                                                    <t t-if="record.total_remaining.raw_value > 0">
+                                                        <t t-esc="record.total_remaining_fmt.value"/> ₫
+                                                    </t>
+                                                    <t t-else="">✓ Hoàn tất</t>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Quick Info -->
+                                    <div style="display: flex; gap: 6px; margin-top: 10px;">
+                                        <div style="flex: 1; padding: 6px 10px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; font-size: 11px; text-align: center;">
+                                            💰 <strong t-esc="record.invoice_ids.raw_value.length"/> hóa đơn
+                                        </div>
+                                        <div style="flex: 1; padding: 6px 10px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; font-size: 11px; text-align: center;">
+                                            📊 <strong t-esc="record.meter_reading_ids.raw_value.length"/> chỉ số
+                                        </div>
+                                    </div>
+
+                                    <!-- Timeline Info -->
+                                    <div t-if="record.start_date.value" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #e9ecef;">
+                                        <div style="font-size: 11px; color: #6c757d; display: flex; align-items: center;">
+                                            <i class="fa fa-calendar" style="margin-right: 6px;"></i>
+                                            Từ <strong t-esc="record.start_date.value"/>
+                                            <span t-if="record.end_date.value"> đến <strong t-esc="record.end_date.value"/></span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </t>

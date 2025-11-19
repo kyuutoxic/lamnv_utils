@@ -11,9 +11,9 @@
                     <field name="invoice_number"/>
                     <field name="room_id"/>
                     <field name="invoice_month"/>
-                    <field name="total_amount" sum="Tổng"/>
-                    <field name="paid_amount" sum="Đã Thanh Toán"/>
-                    <field name="remaining_amount" sum="Còn Lại"/>
+                    <field name="total_amount" widget="vnd_currency" sum="Tổng"/>
+                    <field name="paid_amount" widget="vnd_currency" sum="Đã Thanh Toán"/>
+                    <field name="remaining_amount" widget="vnd_currency" sum="Còn Lại"/>
                     <field name="status"/>
                     <field name="due_date"/>
                 </list>
@@ -84,37 +84,37 @@
                             <page string="Chi Tiết Hóa Đơn" name="invoice_details">
                                 <group>
                                     <group string="Tiền Thuê">
-                                        <field name="rent_amount" required="1" readonly="status in ['paid', 'canceled']"/>
+                                        <field name="rent_amount" widget="vnd_currency" required="1" readonly="status in ['paid', 'canceled']"/>
                                     </group>
                                     <group string="Tiền Điện">
-                                        <field name="electric_price_per_unit" readonly="status in ['paid', 'canceled']"/>
-                                        <field name="electric_usage" readonly="status in ['paid', 'canceled']"/>
-                                        <field name="electric_amount" readonly="1"/>
+                                        <field name="electric_price_per_unit" widget="vnd_currency" readonly="status in ['paid', 'canceled']"/>
+                                        <field name="electric_usage" widget="number_format" readonly="status in ['paid', 'canceled']"/>
+                                        <field name="electric_amount" widget="vnd_currency" readonly="1"/>
                                     </group>
                                 </group>
 
                                 <group>
                                     <group string="Tiền Nước">
-                                        <field name="water_price_per_unit" readonly="status in ['paid', 'canceled']"/>
-                                        <field name="water_usage" readonly="status in ['paid', 'canceled']"/>
-                                        <field name="water_amount" readonly="1"/>
+                                        <field name="water_price_per_unit" widget="vnd_currency" readonly="status in ['paid', 'canceled']"/>
+                                        <field name="water_usage" widget="number_format" readonly="status in ['paid', 'canceled']"/>
+                                        <field name="water_amount" widget="vnd_currency" readonly="1"/>
                                     </group>
                                     <group string="Tiền Tiện Ích">
-                                        <field name="utilities_amount" readonly="status in ['paid', 'canceled']"/>
-                                        <field name="other_charges" readonly="status in ['paid', 'canceled']"/>
+                                        <field name="utilities_amount" widget="vnd_currency" readonly="status in ['paid', 'canceled']"/>
+                                        <field name="other_charges" widget="vnd_currency" readonly="status in ['paid', 'canceled']"/>
                                     </group>
                                 </group>
 
                                 <separator string="Tóm Tắt"/>
                                 <group>
                                     <group>
-                                        <field name="subtotal" readonly="1" string="Tổng Cộng"/>
-                                        <field name="discount_amount" readonly="status in ['paid', 'canceled']"/>
-                                        <field name="total_amount" readonly="1" string="Tổng Thanh Toán"/>
+                                        <field name="subtotal" widget="vnd_currency" readonly="1" string="Tổng Cộng"/>
+                                        <field name="discount_amount" widget="vnd_currency" readonly="status in ['paid', 'canceled']"/>
+                                        <field name="total_amount" widget="vnd_currency" readonly="1" string="Tổng Thanh Toán"/>
                                     </group>
                                     <group>
-                                        <field name="paid_amount" string="Đã Thanh Toán"/>
-                                        <field name="remaining_amount" readonly="1" string="Còn Lại"/>
+                                        <field name="paid_amount" widget="vnd_currency" string="Đã Thanh Toán"/>
+                                        <field name="remaining_amount" widget="vnd_currency" readonly="1" string="Còn Lại"/>
                                         <field name="manual_breakdown" placeholder="VD: Nước: 4 x 20k = 80k..." readonly="1"/>
                                     </group>
                                 </group>

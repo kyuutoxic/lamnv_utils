@@ -112,6 +112,34 @@ class RentalRoom(models.Model):
         compute='_compute_total_expenses',
         store=True
     )
+    
+    # Display fields for Kanban (không store, chỉ để hiển thị)
+    total_invoiced_fmt = fields.Char(
+        string='Tổng Hóa Đơn Formatted',
+        compute='_compute_formatted_totals'
+    )
+    total_remaining_fmt = fields.Char(
+        string='Tổng Còn Lại Formatted', 
+        compute='_compute_formatted_totals'
+    )
+    default_rent_fmt = fields.Char(
+        string='Tiền Thuê Formatted',
+        compute='_compute_formatted_totals'
+    )
+
+    def format_vnd_amount(self, amount):
+        """Format amount with Vietnamese style (dots as thousand separators)"""
+        if not amount:
+            return "0"
+        return "{:,.0f}".format(amount).replace(',', '.')
+    
+    @api.depends('total_invoiced', 'total_remaining', 'default_rent')
+    def _compute_formatted_totals(self):
+        """Compute formatted amounts for display only"""
+        for room in self:
+            room.total_invoiced_fmt = room.format_vnd_amount(room.total_invoiced)
+            room.total_remaining_fmt = room.format_vnd_amount(room.total_remaining)
+            room.default_rent_fmt = room.format_vnd_amount(room.default_rent)
 
     @api.depends('invoice_ids.total_amount')
     def _compute_total_invoiced(self):

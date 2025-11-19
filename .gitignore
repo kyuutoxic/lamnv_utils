@@ -1,0 +1,271 @@
+# ==============================================================================
+# Git Ignore File for Room Rental Management Project
+# ==============================================================================
+
+# ================================
+# Python specific ignores
+# ================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+*.manifest
+*.spec
+
+# ================================
+# Odoo specific ignores  
+# ================================
+# Odoo filestore (uploaded files)
+filestore/
+# Odoo sessions
+sessions/
+# Odoo logs
+*.log
+# Odoo database backup files
+*.dump
+*.sql
+# Odoo addon auto-generated files
+addons/**/static/description/icon.png.bak
+addons/**/static/src/img/icon.png.bak
+
+# ================================
+# IDE and Editor files
+# ================================
+# PyCharm
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+.netrwhist
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# ================================
+# OS generated files
+# ================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ================================
+# Database files
+# ================================
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+
+# ================================
+# Configuration and secrets
+# ================================
+# Local configuration files (but keep example configs)
+config/database.conf
+config/secrets.conf
+!config/*.conf.example
+!config/*.conf.template
+!**/config/*.conf.template
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# ================================
+# Temporary and cache files
+# ================================
+# General temporary files
+*.tmp
+*.temp
+*.cache
+*.bak
+*.backup
+*.old
+*.orig
+
+# Node.js (if using npm for frontend assets)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.eslintcache
+
+# ================================
+# Documentation and reports
+# ================================
+# Generated documentation
+docs/_build/
+docs/build/
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# ================================
+# Media and uploads
+# ================================
+# User uploaded files (adjust path as needed)
+media/
+uploads/
+static/uploads/
+
+# Large binary files
+*.pdf
+*.zip
+*.rar
+*.7z
+*.tar.gz
+*.tgz
+
+# Image files (except icons and essential assets)
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.ico
+*.svg
+!**/static/description/icon.png
+!**/static/description/*.png
+!**/static/src/img/*.png
+!**/static/src/img/*.svg
+
+# ================================
+# Project specific ignores
+# ================================
+# Room rental project specific
+# Test data and demo files
+test_data/
+demo_data/
+sample_data/
+
+# Generated reports and exports
+exports/
+reports/generated/
+*.xlsx
+*.xls
+*.csv
+
+# ================================
+# Security and sensitive data
+# ================================
+# SSH keys
+*.pem
+*.key
+*.p12
+*.pfx
+.ssh/
+
+# SSL certificates
+*.crt
+*.cer
+*.p7b
+*.p7c
+*.csr
+
+# ================================
+# Development and testing
+# ================================
+# Test coverage
+.coverage
+.nyc_output
+coverage/
+
+# Testing frameworks
+.pytest_cache/
+.tox/
+.nox/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# ================================
+# End of .gitignore
+# ================================

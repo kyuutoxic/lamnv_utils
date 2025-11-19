@@ -9,10 +9,10 @@
                 <list string="Danh Sách Chỉ Số Công Tơ">
                     <field name="reading_month"/>
                     <field name="room_id"/>
-                    <field name="electric_current"/>
-                    <field name="electric_usage"/>
-                    <field name="water_current"/>
-                    <field name="water_usage"/>
+                    <field name="electric_current" widget="number_format"/>
+                    <field name="electric_usage" widget="number_format"/>
+                    <field name="water_current" widget="number_format"/>
+                    <field name="water_usage" widget="number_format"/>
                     <field name="reading_date"/>
                 </list>
             </field>
@@ -53,13 +53,13 @@
                                 <group>
                                     <group>
                                         <field name="reading_date" readonly="invoice_id"/>
-                                        <field name="electric_previous" readonly="electric_meter_replaced or invoice_id"/>
-                                        <field name="electric_current" readonly="invoice_id"/>
-                                        <field name="electric_usage" readonly="not electric_usage_manual_override or invoice_id"/>
+                                        <field name="electric_previous" widget="number_format" readonly="electric_meter_replaced or invoice_id"/>
+                                        <field name="electric_current" widget="number_format" readonly="invoice_id"/>
+                                        <field name="electric_usage" widget="number_format" readonly="not electric_usage_manual_override or invoice_id"/>
                                     </group>
                                     <group>
                                         <field name="electric_meter_replaced" readonly="invoice_id"/>
-                                        <field name="electric_replacement_last"
+                                        <field name="electric_replacement_last" widget="number_format"
                                                placeholder="Chỉ số cuối công tơ cũ"
                                                invisible="not electric_meter_replaced"/>
                                         <field name="electric_usage_manual_override" readonly="invoice_id"/>
@@ -75,13 +75,13 @@
                                 <group>
                                     <group>
                                         <field name="reading_date" readonly="invoice_id"/>
-                                        <field name="water_previous" readonly="water_meter_replaced or invoice_id"/>
-                                        <field name="water_current" readonly="invoice_id"/>
-                                        <field name="water_usage" readonly="not water_usage_manual_override or invoice_id"/>
+                                        <field name="water_previous" widget="number_format" readonly="water_meter_replaced or invoice_id"/>
+                                        <field name="water_current" widget="number_format" readonly="invoice_id"/>
+                                        <field name="water_usage" widget="number_format" readonly="not water_usage_manual_override or invoice_id"/>
                                     </group>
                                     <group>
                                         <field name="water_meter_replaced" readonly="invoice_id"/>
-                                        <field name="water_replacement_last"
+                                        <field name="water_replacement_last" widget="number_format"
                                                placeholder="Chỉ số cuối công tơ cũ"
                                                invisible="not water_meter_replaced"/>
                                         <field name="water_usage_manual_override" readonly="invoice_id"/>
