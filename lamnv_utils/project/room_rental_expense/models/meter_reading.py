@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
 
@@ -7,7 +6,7 @@ class MeterReading(models.Model):
     _name = 'meter.reading'
     _description = 'Chỉ Số Công Tơ'
     _rec_name = 'name'
-    _order = 'reading_date desc'
+    _order = 'reading_date desc, id desc'
 
     name = fields.Char(
         string='Tên',
@@ -111,6 +110,24 @@ class MeterReading(models.Model):
         ondelete='set null'
     )
     notes = fields.Text(string='Ghi Chú')
+    _locked_fields_after_invoice = {
+        'room_id',
+        'reading_date',
+        'electric_previous',
+        'electric_current',
+        'electric_replacement_last',
+        'electric_usage',
+        'electric_meter_replaced',
+        'electric_usage_manual_override',
+        'electric_usage_manual_value',
+        'water_previous',
+        'water_current',
+        'water_replacement_last',
+        'water_usage',
+        'water_meter_replaced',
+        'water_usage_manual_override',
+        'water_usage_manual_value',
+    }
 
     @api.depends('room_id', 'reading_month', 'reading_date')
     def _compute_name(self):
@@ -201,6 +218,19 @@ class MeterReading(models.Model):
                     'nếu công tơ đã được thay.'
                 )
 
+    @api.constrains('electric_meter_replaced', 'electric_replacement_last',
+                    'electric_previous')
+    def _check_electric_replacement(self):
+        for reading in self:
+            if (reading.electric_meter_replaced and
+                    reading.electric_replacement_last and
+                    reading.electric_replacement_last <
+                    (reading.electric_previous or 0.0)):
+                raise ValidationError(
+                    'Chỉ số cuối của công tơ điện cũ không thể nhỏ hơn '
+                    'chỉ số điện tháng trước.'
+                )
+
     @api.constrains('water_current', 'water_previous',
                     'water_meter_replaced')
     def _check_water_reading(self):
@@ -212,6 +242,19 @@ class MeterReading(models.Model):
                     'Số nước hiện tại không thể nhỏ hơn số tháng trước! '
                     'Hãy tick "Đã thay công tơ?" '
                     'nếu công tơ đã được thay.'
+                )
+
+    @api.constrains('water_meter_replaced', 'water_replacement_last',
+                    'water_previous')
+    def _check_water_replacement(self):
+        for reading in self:
+            if (reading.water_meter_replaced and
+                    reading.water_replacement_last and
+                    reading.water_replacement_last <
+                    (reading.water_previous or 0.0)):
+                raise ValidationError(
+                    'Chỉ số cuối của công tơ nước cũ không thể nhỏ hơn '
+                    'chỉ số nước tháng trước.'
                 )
 
     @api.onchange('electric_meter_replaced', 'electric_current',
@@ -268,7 +311,10 @@ class MeterReading(models.Model):
     def default_get(self, fields_list):
         defaults = super().default_get(fields_list)
         room_id = self.env.context.get('default_room_id')
-        reading_date = defaults.get('reading_date') or fields.Date.context_today(self)
+        reading_date = (
+            defaults.get('reading_date') or
+            self.env.context.get('default_reading_date')
+        )
         if room_id and ('electric_previous' in fields_list or
                         'water_previous' in fields_list):
             if isinstance(reading_date, str):
@@ -297,7 +343,10 @@ class MeterReading(models.Model):
         if not readings:
             return readings
         sorted_readings = readings.sorted(
-            key=lambda r: r.reading_date or fields.Date.from_string('1970-01-01'),
+            key=lambda r: (
+                r.reading_date or fields.Date.from_string('1970-01-01'),
+                r.id
+            ),
             reverse=True
         )
         return sorted_readings[0]
@@ -310,6 +359,49 @@ class MeterReading(models.Model):
                 raise ValidationError(
                     'Hóa đơn phải thuộc cùng phòng với chỉ số công tơ.'
                 )
+
+    def write(self, vals):
+        if self._locked_fields_after_invoice.intersection(vals):
+            locked = self.filtered('invoice_id')
+            if locked:
+                raise ValidationError(
+                    'Không thể sửa chỉ số công tơ đã được gắn với hóa đơn.'
+                )
+        return super().write(vals)
+
+    def action_create_invoice(self):
+        self.ensure_one()
+        if self.invoice_id:
+            return self.action_open_invoice()
+
+        invoice = self.env['room.invoice'].create({
+            'room_id': self.room_id.id,
+            'invoice_month': self.reading_month,
+            'invoice_date': self.reading_date or fields.Date.context_today(self),
+            'meter_reading_id': self.id,
+        })
+        self.invoice_id = invoice
+        return {
+            'type': 'ir.actions.act_window',
+            'name': f'Hóa Đơn - {invoice.invoice_number}',
+            'res_model': 'room.invoice',
+            'res_id': invoice.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }
+
+    def action_open_invoice(self):
+        self.ensure_one()
+        if not self.invoice_id:
+            raise ValidationError('Chỉ số công tơ này chưa có hóa đơn liên kết.')
+        return {
+            'type': 'ir.actions.act_window',
+            'name': f'Hóa Đơn - {self.invoice_id.invoice_number}',
+            'res_model': 'room.invoice',
+            'res_id': self.invoice_id.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }
 
     def unlink(self):
         linked = self.filtered('invoice_id')

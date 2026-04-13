@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
 
 from dateutil.relativedelta import relativedelta
@@ -12,7 +11,14 @@ class RoomInvoice(models.Model):
     _description = 'Hóa Đơn Phòng Trọ'
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _rec_name = 'invoice_number'
-    _order = 'invoice_month desc'
+    _order = 'invoice_period_date desc, invoice_date desc, id desc'
+    _sql_constraints = [
+        (
+            'room_invoice_unique_meter_reading',
+            'unique(meter_reading_id)',
+            'Mỗi chỉ số công tơ chỉ được gắn với một hóa đơn.'
+        ),
+    ]
 
     room_id = fields.Many2one(
         'rental.room',
@@ -30,6 +36,11 @@ class RoomInvoice(models.Model):
         required=True
     )
     invoice_date = fields.Date(string='Ngày Lập Hóa Đơn')
+    invoice_period_date = fields.Date(
+        string='Ngày Kỳ Hóa Đơn',
+        compute='_compute_invoice_period_date',
+        store=True
+    )
     due_date = fields.Date(string='Hạn Thanh Toán')
     status = fields.Selection(
         [('draft', 'Nháp'),
@@ -107,7 +118,10 @@ class RoomInvoice(models.Model):
     meter_reading_id = fields.Many2one(
         'meter.reading',
         string='Chỉ Số Công Tơ',
-        domain="[('room_id', '=', room_id)]",
+        domain=(
+            "[('room_id', '=', room_id), '|', "
+            "('invoice_id', '=', False), ('invoice_id', '=', id)]"
+        ),
         ondelete='set null'
     )
     applied_config_id = fields.Many2one(
@@ -115,6 +129,21 @@ class RoomInvoice(models.Model):
         string='Cấu Hình Được Áp Dụng',
         readonly=True
     )
+    _locked_after_draft_fields = {
+        'room_id',
+        'invoice_month',
+        'invoice_date',
+        'due_date',
+        'meter_reading_id',
+        'rent_amount',
+        'electric_price_per_unit',
+        'electric_usage',
+        'water_price_per_unit',
+        'water_usage',
+        'utilities_amount',
+        'other_charges',
+        'discount_amount',
+    }
 
     @api.model
     def create(self, vals):
@@ -126,10 +155,20 @@ class RoomInvoice(models.Model):
         records = super().create(new_vals)
         records._apply_config_prices(force=True)
         records._sync_meter_readings()
-        records._auto_update_status(force_pending=True)
+        records._auto_update_status()
         return records
 
     def write(self, vals):
+        protected_fields = self._locked_after_draft_fields.intersection(vals)
+        if protected_fields:
+            locked = self.filtered(lambda inv: inv.status != 'draft')
+            if locked:
+                raise ValidationError(
+                    _(
+                        'Không thể sửa thông tin cốt lõi của hóa đơn '
+                        'sau khi đã rời trạng thái nháp.'
+                    )
+                )
         res = super().write(vals)
         if any(field in vals for field in
                ('room_id', 'invoice_month', 'invoice_date')):
@@ -138,6 +177,13 @@ class RoomInvoice(models.Model):
             self._sync_meter_readings()
         self._auto_update_status()
         return res
+
+    @api.depends('invoice_month')
+    def _compute_invoice_period_date(self):
+        for invoice in self:
+            invoice.invoice_period_date = self._parse_month_to_date(
+                invoice.invoice_month
+            )
 
     @api.depends('electric_usage', 'electric_price_per_unit')
     def _compute_electric_amount(self):
@@ -186,7 +232,6 @@ class RoomInvoice(models.Model):
             invoice.remaining_amount = (
                 invoice.total_amount - invoice.paid_amount
             )
-        self._auto_update_status()
 
     @api.depends(
         'meter_reading_id.electric_previous',
@@ -261,7 +306,14 @@ class RoomInvoice(models.Model):
             invoice.manual_breakdown = '\n'.join(lines) if lines else False
 
     def action_confirm(self):
-        self.status = 'pending'
+        for invoice in self:
+            if invoice.status != 'draft':
+                continue
+            if invoice.total_amount <= 0:
+                raise ValidationError(
+                    _('Chỉ có thể xác nhận hóa đơn có tổng thanh toán lớn hơn 0.')
+                )
+            invoice.status = 'pending'
 
     def action_paid(self):
         for invoice in self:
@@ -286,18 +338,34 @@ class RoomInvoice(models.Model):
     @api.onchange('room_id', 'invoice_month', 'invoice_date')
     def _onchange_room_or_dates(self):
         for invoice in self:
+            if invoice.invoice_date and not invoice.invoice_month:
+                invoice.invoice_month = invoice.invoice_date.strftime('%m/%Y')
             # Tự động lấy tiền thuê mặc định từ phòng nếu chưa nhập
             if invoice.room_id and not invoice.rent_amount and invoice.room_id.default_rent:
                 invoice.rent_amount = invoice.room_id.default_rent
             invoice._apply_config_prices(force=True)
 
-    @api.constrains('meter_reading_id', 'room_id')
+    @api.constrains('meter_reading_id', 'room_id', 'invoice_month')
     def _check_meter_same_room(self):
         for invoice in self:
             if (invoice.meter_reading_id and
                     invoice.meter_reading_id.room_id != invoice.room_id):
                 raise ValidationError(
                     _('Chỉ số công tơ phải thuộc cùng phòng với hóa đơn.')
+                )
+            if (invoice.meter_reading_id and
+                    invoice.meter_reading_id.invoice_id and
+                    invoice.meter_reading_id.invoice_id != invoice):
+                raise ValidationError(
+                    _(
+                        'Chỉ số công tơ này đã được gắn với hóa đơn %s.'
+                    ) % invoice.meter_reading_id.invoice_id.display_name
+                )
+            if (invoice.meter_reading_id and invoice.invoice_month and
+                    invoice.meter_reading_id.reading_month !=
+                    invoice.invoice_month):
+                raise ValidationError(
+                    _('Chỉ số công tơ phải thuộc cùng tháng với hóa đơn.')
                 )
 
     @api.constrains('invoice_date', 'due_date')
@@ -307,6 +375,38 @@ class RoomInvoice(models.Model):
                     invoice.due_date < invoice.invoice_date):
                 raise ValidationError(
                     _('Hạn thanh toán phải sau ngày lập hóa đơn.')
+                )
+
+    @api.constrains('invoice_month')
+    def _check_invoice_month_format(self):
+        for invoice in self:
+            if not invoice.invoice_month:
+                continue
+            if not self._parse_month_to_date(invoice.invoice_month):
+                raise ValidationError(
+                    _('Tháng hóa đơn phải theo định dạng MM/YYYY.')
+                )
+
+    @api.constrains(
+        'rent_amount', 'electric_price_per_unit', 'electric_usage',
+        'water_price_per_unit', 'water_usage', 'utilities_amount',
+        'other_charges', 'discount_amount', 'paid_amount'
+    )
+    def _check_non_negative_amounts(self):
+        for invoice in self:
+            values = (
+                invoice.rent_amount,
+                invoice.electric_price_per_unit,
+                invoice.electric_usage,
+                invoice.water_price_per_unit,
+                invoice.water_usage,
+                invoice.utilities_amount,
+                invoice.discount_amount,
+                invoice.paid_amount,
+            )
+            if any(value < 0 for value in values):
+                raise ValidationError(
+                    _('Các giá trị tiền và mức tiêu thụ không được âm.')
                 )
 
     def _inject_default_values(self, vals):
@@ -321,6 +421,12 @@ class RoomInvoice(models.Model):
         if room and not working_vals.get('rent_amount') and room.default_rent:
             working_vals['rent_amount'] = room.default_rent
         invoice_date_value = working_vals.get('invoice_date')
+        if not invoice_date_value:
+            invoice_date_value = fields.Date.context_today(self)
+            working_vals['invoice_date'] = invoice_date_value
+        if not working_vals.get('invoice_month') and invoice_date_value:
+            date_obj = fields.Date.to_date(invoice_date_value)
+            working_vals['invoice_month'] = date_obj.strftime('%m/%Y')
         if (room and not working_vals.get('due_date') and
                 invoice_date_value):
             date_obj = fields.Date.to_date(invoice_date_value)
@@ -374,10 +480,8 @@ class RoomInvoice(models.Model):
                     invoice.water_price_per_unit = self._get_default_price(
                         'room_rental_expense.default_water_price'
                     )
-                if force and not invoice.utilities_amount:
-                    invoice.utilities_amount = self._get_default_price(
-                        'room_rental_expense.default_wifi_price'
-                    )
+                if force or not invoice.utilities_amount:
+                    invoice.utilities_amount = self._get_default_utilities_amount()
                 if force:
                     invoice.applied_config_id = False
 
@@ -388,6 +492,13 @@ class RoomInvoice(models.Model):
                 ('invoice_id', '=', invoice.id)
             ])
             if invoice.meter_reading_id:
+                if (invoice.meter_reading_id.invoice_id and
+                        invoice.meter_reading_id.invoice_id != invoice):
+                    raise ValidationError(
+                        _(
+                            'Chỉ số công tơ này đã được gắn với hóa đơn %s.'
+                        ) % invoice.meter_reading_id.invoice_id.display_name
+                    )
                 (linked_readings - invoice.meter_reading_id).write(
                     {'invoice_id': False}
                 )
@@ -409,9 +520,9 @@ class RoomInvoice(models.Model):
             elif invoice.paid_amount > 0 and invoice.remaining_amount > 0:
                 new_status = 'partially_paid'
             elif (invoice.due_date and invoice.due_date < today and
-                  invoice.status not in ('overdue', 'paid')):
+                  invoice.status in ('pending', 'partially_paid', 'overdue')):
                 new_status = 'overdue'
-            elif force_pending or invoice.status == 'draft':
+            elif force_pending and invoice.status == 'draft':
                 new_status = 'pending'
             if new_status != invoice.status:
                 invoice.status = new_status
@@ -479,3 +590,13 @@ class RoomInvoice(models.Model):
             return float(value)
         except (TypeError, ValueError):
             return default
+
+    def _get_default_utilities_amount(self):
+        return (
+            self._get_default_price('room_rental_expense.default_wifi_price') +
+            self._get_default_price('room_rental_expense.default_trash_fee') +
+            self._get_default_price('room_rental_expense.default_parking_fee') +
+            self._get_default_price(
+                'room_rental_expense.default_other_utilities_price'
+            )
+        )
