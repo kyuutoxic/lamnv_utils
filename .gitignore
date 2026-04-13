@@ -147,6 +147,7 @@ lamnv_utils/config/local.conf
 .env
 .env.local
 .env.*.local
+.codex
 .codex/
 
 # ================================
