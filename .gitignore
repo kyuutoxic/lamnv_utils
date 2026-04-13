@@ -138,6 +138,7 @@ $RECYCLE.BIN/
 # Local configuration files (but keep example configs)
 config/database.conf
 config/secrets.conf
+lamnv_utils/config/local.conf
 !config/*.conf.example
 !config/*.conf.template
 !**/config/*.conf.template
@@ -146,6 +147,7 @@ config/secrets.conf
 .env
 .env.local
 .env.*.local
+.codex/
 
 # ================================
 # Temporary and cache files
@@ -265,6 +267,8 @@ coverage/
 # IPython
 profile_default/
 ipython_config.py
+.python-version
+.python-version/
 
 # ================================
 # End of .gitignore

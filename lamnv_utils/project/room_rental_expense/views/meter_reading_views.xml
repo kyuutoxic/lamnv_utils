@@ -39,6 +39,14 @@
             <field name="model">meter.reading</field>
             <field name="arch" type="xml">
                 <form string="Chỉ Số Công Tơ">
+                    <header>
+                        <button name="action_create_invoice" type="object"
+                                string="Tạo Hóa Đơn" class="oe_highlight"
+                                invisible="invoice_id"/>
+                        <button name="action_open_invoice" type="object"
+                                string="Mở Hóa Đơn"
+                                invisible="not invoice_id"/>
+                    </header>
                     <sheet>
                         <h1>
                             <field name="room_id" class="oe_inline" readonly="invoice_id"/>

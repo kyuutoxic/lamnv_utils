@@ -18,6 +18,14 @@
             <field name="key">room_rental_expense.default_trash_fee</field>
             <field name="value">30000</field>
         </record>
+        <record id="param_default_parking_fee" model="ir.config_parameter">
+            <field name="key">room_rental_expense.default_parking_fee</field>
+            <field name="value">0</field>
+        </record>
+        <record id="param_default_other_utilities_price" model="ir.config_parameter">
+            <field name="key">room_rental_expense.default_other_utilities_price</field>
+            <field name="value">0</field>
+        </record>
         <record id="param_default_reminder_days" model="ir.config_parameter">
             <field name="key">room_rental_expense.reminder_days</field>
             <field name="value">3</field>

@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 from odoo import models, fields, api
+from odoo.exceptions import ValidationError
 
 
 class RentalRoom(models.Model):
@@ -174,7 +174,7 @@ class RentalRoom(models.Model):
         for room in self:
             if (room.start_date and room.end_date and
                     room.start_date > room.end_date):
-                raise ValueError(
+                raise ValidationError(
                     'Ngày kết thúc phải lớn hơn ngày bắt đầu!'
                 )
 
