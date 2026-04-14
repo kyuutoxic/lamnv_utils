@@ -55,6 +55,26 @@
                             <field name="reading_month" class="oe_inline" readonly="1"/>
                         </h3>
 
+                        <group string="Tổng Quan">
+                            <group>
+                                <field name="reading_date" readonly="1"/>
+                                <field name="reading_month" readonly="1"/>
+                                <field name="invoice_id" readonly="1" options="{'no_open': False}"/>
+                            </group>
+                            <group>
+                                <field name="electric_usage" readonly="1" widget="number_format"/>
+                                <field name="water_usage" readonly="1" widget="number_format"/>
+                            </group>
+                            <group string="Thao Tác Nhanh">
+                                <button name="action_create_invoice" type="object"
+                                        string="Tạo Hóa Đơn" class="oe_highlight"
+                                        invisible="invoice_id"/>
+                                <button name="action_open_invoice" type="object"
+                                        string="Mở Hóa Đơn"
+                                        invisible="not invoice_id"/>
+                            </group>
+                        </group>
+
                         <notebook>
                             <!-- Tab: Điện -->
                             <page string="Điện" name="electric">
