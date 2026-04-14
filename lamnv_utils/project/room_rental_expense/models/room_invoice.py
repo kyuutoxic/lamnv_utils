@@ -24,24 +24,27 @@ class RoomInvoice(models.Model):
         'rental.room',
         string='Phòng Trọ',
         required=True,
-        ondelete='cascade'
+        ondelete='cascade',
+        tracking=True
     )
     invoice_number = fields.Char(
         string='Số Hóa Đơn',
         readonly=True,
-        copy=False
+        copy=False,
+        tracking=True
     )
     invoice_month = fields.Char(
         string='Tháng Hóa Đơn (MM/YYYY)',
-        required=True
+        required=True,
+        tracking=True
     )
-    invoice_date = fields.Date(string='Ngày Lập Hóa Đơn')
+    invoice_date = fields.Date(string='Ngày Lập Hóa Đơn', tracking=True)
     invoice_period_date = fields.Date(
         string='Ngày Kỳ Hóa Đơn',
         compute='_compute_invoice_period_date',
         store=True
     )
-    due_date = fields.Date(string='Hạn Thanh Toán')
+    due_date = fields.Date(string='Hạn Thanh Toán', tracking=True)
     status = fields.Selection(
         [('draft', 'Nháp'),
          ('pending', 'Chờ Thanh Toán'),
@@ -50,13 +53,15 @@ class RoomInvoice(models.Model):
          ('overdue', 'Quá Hạn'),
          ('canceled', 'Hủy')],
         string='Trạng Thái',
-        default='draft'
+        default='draft',
+        tracking=True
     )
 
     # Chi tiết hóa đơn
     rent_amount = fields.Float(
         string='Tiền Thuê (VND)',
-        required=True
+        required=True,
+        tracking=True
     )
     electric_price_per_unit = fields.Float(
         string='Giá Điện (VND/kWh)'
@@ -89,27 +94,32 @@ class RoomInvoice(models.Model):
     subtotal = fields.Float(
         string='Tổng Cộng (VND)',
         compute='_compute_subtotal',
-        store=True
+        store=True,
+        tracking=True
     )
     discount_amount = fields.Float(
         string='Chiết Khấu (VND)',
-        default=0
+        default=0,
+        tracking=True
     )
     total_amount = fields.Float(
         string='Tổng Thanh Toán (VND)',
         compute='_compute_total_amount',
-        store=True
+        store=True,
+        tracking=True
     )
     paid_amount = fields.Float(
         string='Số Tiền Đã Thanh Toán (VND)',
-        default=0
+        default=0,
+        tracking=True
     )
     remaining_amount = fields.Float(
         string='Số Tiền Còn Lại (VND)',
         compute='_compute_remaining_amount',
-        store=True
+        store=True,
+        tracking=True
     )
-    notes = fields.Text(string='Ghi Chú')
+    notes = fields.Text(string='Ghi Chú', tracking=True)
     manual_breakdown = fields.Text(
         string='Tóm Tắt Chi Tiết',
         compute='_compute_manual_breakdown',
