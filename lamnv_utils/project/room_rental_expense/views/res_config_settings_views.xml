@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_res_config_settings_form_room_rental_expense" model="ir.ui.view">
+            <field name="name">res.config.settings.view.form.room.rental.expense</field>
+            <field name="model">res.config.settings</field>
+            <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form" position="inside">
+                    <app string="Room Rental Expense"
+                         data-string="Room Rental Expense"
+                         name="room_rental_expense"
+                         groups="base.group_system">
+                        <block title="Telegram" id="room_rental_expense_telegram_settings">
+                            <setting string="Cấu hình Telegram Bot"
+                                     help="Cấu hình token, webhook secret, danh sách chat được phép và đăng ký các lệnh slash cho bot.">
+                                <div class="content-group">
+                                    <div class="row mt16">
+                                        <label for="telegram_bot_token" string="Bot Token" class="col-lg-4 o_light_label"/>
+                                        <field name="telegram_bot_token" password="True" class="oe_inline"/>
+                                    </div>
+                                    <div class="row mt16">
+                                        <label for="telegram_webhook_secret" string="Webhook Secret" class="col-lg-4 o_light_label"/>
+                                        <field name="telegram_webhook_secret" password="True" class="oe_inline"/>
+                                    </div>
+                                    <div class="row mt16">
+                                        <label for="telegram_allowed_chat_ids" string="Allowed Chat IDs" class="col-lg-4 o_light_label"/>
+                                        <field name="telegram_allowed_chat_ids" class="oe_inline"/>
+                                    </div>
+                                    <div class="mt16">
+                                        <button name="action_register_telegram_commands"
+                                                type="object"
+                                                string="Đăng ký lệnh Telegram"
+                                                class="btn btn-primary"/>
+                                    </div>
+                                    <div class="text-muted mt8">
+                                        Sau khi bấm nút này, Telegram sẽ gợi ý các lệnh như /help, /reading, /inv khi người dùng gõ "/".
+                                    </div>
+                                </div>
+                            </setting>
+                        </block>
+                    </app>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

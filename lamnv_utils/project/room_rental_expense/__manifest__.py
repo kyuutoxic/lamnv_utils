@@ -34,6 +34,7 @@
         'views/room_invoice_views.xml',
         'views/room_expense_views.xml',
         'views/room_config_views.xml',
+        'views/res_config_settings_views.xml',
         'views/room_history_views.xml',
         'views/room_deposit_views.xml',
         'views/room_issue_views.xml',
