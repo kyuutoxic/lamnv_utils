@@ -30,5 +30,17 @@
             <field name="key">room_rental_expense.reminder_days</field>
             <field name="value">3</field>
         </record>
+        <record id="param_telegram_bot_token" model="ir.config_parameter">
+            <field name="key">room_rental_expense.telegram_bot_token</field>
+            <field name="value"></field>
+        </record>
+        <record id="param_telegram_webhook_secret" model="ir.config_parameter">
+            <field name="key">room_rental_expense.telegram_webhook_secret</field>
+            <field name="value"></field>
+        </record>
+        <record id="param_telegram_allowed_chat_ids" model="ir.config_parameter">
+            <field name="key">room_rental_expense.telegram_allowed_chat_ids</field>
+            <field name="value"></field>
+        </record>
     </data>
 </odoo>

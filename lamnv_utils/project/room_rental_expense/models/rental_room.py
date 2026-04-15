@@ -7,6 +7,13 @@ class RentalRoom(models.Model):
     _description = 'Phòng Trọ'
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'name'
+    _sql_constraints = [
+        (
+            'rental_room_telegram_code_unique',
+            'unique(telegram_code)',
+            'Mã Telegram của phòng phải là duy nhất.'
+        ),
+    ]
 
     name = fields.Char(
         string='Tên Phòng',
@@ -14,6 +21,11 @@ class RentalRoom(models.Model):
         tracking=True
     )
     room_number = fields.Char(string='Số Phòng')
+    telegram_code = fields.Char(
+        string='Mã Telegram',
+        tracking=True,
+        help='Mã phòng ngắn dùng để nhập chỉ số qua Telegram, ví dụ P101.'
+    )
     building_name = fields.Char(string='Tên Nhà/Khu Trọ')
     address = fields.Text(string='Địa Chỉ Đầy Đủ')
     area = fields.Float(string='Diện Tích (m²)')

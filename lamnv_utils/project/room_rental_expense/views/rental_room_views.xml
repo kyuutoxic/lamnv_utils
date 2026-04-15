@@ -52,6 +52,7 @@
                                 <group>
                                     <group>
                                         <field name="room_number" string="Số Phòng"/>
+                                        <field name="telegram_code" string="Mã Telegram"/>
                                         <field name="building_name" string="Tên Nhà"/>
                                         <field name="room_type" string="Loại Phòng"/>
                                         <field name="area" string="Diện Tích (m²)" widget="number_format"/>
