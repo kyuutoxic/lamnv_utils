@@ -2,7 +2,7 @@
 
 > Đối chiếu source ngày **2026-10-06**. Đọc phần 1 trước để nắm nhanh; các phần sau giải thích chi tiết và chỉ đến nơi cần sửa. File này có thể đưa riêng cho AI, không cần đính kèm các README khác để hiểu kiến trúc và nghiệp vụ chính.
 >
-> Đây là mô tả code đang có, không phải cam kết mọi flow đã chạy thành công. Chưa chạy Odoo/database trong lần tổng hợp này. Khi sửa code, kiểm tra lại file nguồn vì tài liệu là snapshot. Không chứa mật khẩu, bot token hay webhook secret thật.
+> Đây là mô tả code đang có, không phải cam kết mọi flow đã chạy thành công. Đã chạy tests Odoo 19 trên database riêng ngày 2026-10-06; phạm vi/kết quả ở phần 13. Khi sửa code, kiểm tra lại file nguồn vì tài liệu là snapshot. Không chứa mật khẩu, bot token hay webhook secret thật.
 
 ## Đọc theo task
 
@@ -55,7 +55,7 @@ Quy ước thư mục và đặt tên source của addon dựa trên [Odoo 19 co
 
 ## 1. Nắm project trong 2 phút
 
-`lamnv_utils` là workspace custom addon cho **Odoo 19**, hiện có một addon nghiệp vụ tự viết: **`project/room_rental_expense`**, version manifest `19.0.1.0.0`, author `lamnv`, license `LGPL-3`, application bật, auto-install tắt.
+`lamnv_utils` là workspace custom addon cho **Odoo 19**, hiện có một addon nghiệp vụ tự viết: **`project/room_rental_expense`**, version manifest `19.0.1.1.0`, author `lamnv`, license `LGPL-3`, application bật, auto-install tắt.
 
 Mục đích là **theo dõi chi phí thuê phòng trọ cá nhân**: phòng và chủ phòng, điện nước, tiền thuê, hóa đơn, thanh toán, chi phí phát sinh, tiền cọc, sự cố, lịch sử ở. Telegram giúp nhập nhanh chỉ số và thao tác hóa đơn từ điện thoại. Tên “invoice” ở đây là hóa đơn custom của ứng dụng; không có tích hợp `account.move`, sổ kế toán hoặc cổng thanh toán.
 
@@ -85,7 +85,7 @@ Những điểm AI cần giữ đúng:
 - Telegram chỉ xử lý slash command. Phòng được tìm bằng **OR** trên `telegram_code`, `room_number`, `name`; không phải tìm theo thứ tự ưu tiên.
 - Secret và chat allowlist chỉ được kiểm tra nếu đã cấu hình; webhook sử dụng `sudo()`.
 - Local config đặt port `1369`, database `room_rental_dev`, `workers=0`, **`max_cron_threads=0`**. Có cron trong addon không đồng nghĩa cron chạy trên local này.
-- Chưa có test tự động cho addon nghiệp vụ. Test trong OCA không chứng minh flow phòng trọ đã được kiểm thử.
+- Tests riêng trong `project/room_rental_expense/tests/` dùng TransactionCase cho ORM/nghiệp vụ và HttpCase cho webhook. Test trong OCA không thay thế tests phòng trọ.
 
 ## 2. Cấu trúc và ranh giới repository
 
@@ -97,12 +97,14 @@ lamnv_utils/
 ├── project/room_rental_expense/
 │   ├── AGENTS.md                     chỉ dẫn riêng của addon Odoo
 │   ├── __manifest__.py, __init__.py
-│   ├── models/                       8 model nghiệp vụ + settings extension
+│   ├── models/                       8 model nghiệp vụ + receipt Telegram + settings extension
 │   ├── controllers/telegram_webhook.py
 │   ├── security/ir.model.access.csv
 │   ├── data/                         sequence, mặc định, cron
 │   ├── views/                        10 XML view/menu/settings
 │   ├── reports/invoice_template.xml
+│   ├── tests/                        TransactionCase và HttpCase
+│   ├── migrations/19.0.1.1.0/        tính lại status/tổng khi upgrade
 │   └── static/
 │       ├── src/js/currency_widget.js
 │       └── description/              icon.png, room_icon.png, index.html
@@ -142,6 +144,7 @@ Tất cả đường dẫn model trong bảng thuộc `project/room_rental_expen
 | --- | --- |
 | `rental.room` / `rental_room.py` | Phòng, địa chỉ, tòa nhà, diện tích, loại phòng, thời gian thuê, ảnh, chủ phòng, ngân hàng, `telegram_code`, `default_rent`, tổng tài chính |
 | `room.config` / `room_config.py` | Giá điện, nước, wifi, rác, xe, tiện ích khác theo phòng và ngày hiệu lực |
+| `room.telegram.update` / `telegram_update.py` | Receipt nội bộ chống xử lý trùng update theo SHA-256 token bot và update_id; không lưu token/message thật, không cấp ACL cho người dùng thường |
 | `meter.reading` / `meter_reading.py` | Ngày/tháng ghi, số điện/nước cũ/mới, thay công tơ, usage/manual override, ảnh, liên kết hóa đơn; Telegram |
 | `room.invoice` / `room_invoice.py` | Kỳ/ngày/số hóa đơn, hạn trả, thành phần tiền, chiết khấu, đã trả/còn lại, trạng thái, breakdown, giá áp dụng, reading |
 | `room.expense` / `room_expense.py` | Chi phí riêng theo ngày, category, description, amount, ảnh biên lai |
@@ -165,11 +168,11 @@ total_remaining = sum(invoice_ids.remaining_amount)
 total_expenses  = sum(expense_ids.amount)
 ```
 
-Không lọc trạng thái; nháp và hóa đơn hủy vẫn được cộng. `room.history.total_spent` là non-stored compute: tổng toàn bộ hóa đơn + chi phí của phòng liên kết, không giới hạn `from_date/to_date`, không cộng cọc. `avg_rent` nhập tay, không tự tính.
+Ba tổng hóa đơn/đã trả/còn lại loại canceled, vẫn cộng draft; dependency gồm invoice status. Migration `migrations/19.0.1.1.0/post-migrate.py` cập nhật lại status hóa đơn và stored totals phòng khi nâng từ version cũ. `room.history.total_spent` vẫn là non-stored compute: tổng toàn bộ hóa đơn + chi phí của phòng liên kết, không giới hạn thời gian/trạng thái, không cộng cọc. `avg_rent` nhập tay, không tự tính.
 
 ### Selection và validation
 
-- Loại phòng: `single`, `double`, `studio`, `shared` (default `single`). Phòng chỉ kiểm tra bắt đầu không sau kết thúc; bằng nhau được chấp nhận. Khai báo unique `telegram_code` bằng `_sql_constraints`.
+- Loại phòng: `single`, `double`, `studio`, `shared` (default `single`). Phòng chỉ kiểm tra bắt đầu không sau kết thúc; bằng nhau được chấp nhận. Unique `telegram_code` dùng `models.Constraint` của Odoo 19.
 - Giá: khai báo unique `(room_id,effective_date)`, các giá không âm. Tên compute từ tên phòng và ngày hiệu lực.
 - Chi phí: `repair`, `cleaning`, `supplies`, `maintenance`, `damage_fee`, `other`. Không tự cộng khoản này vào `room.invoice.other_charges`.
 - Cọc: `pending`, `confirmed`, `partial_return`, `fully_returned`, `disputed`; default `pending`. Không có action tự quyết định status theo số hoàn.
@@ -276,18 +279,18 @@ Tiền lưu bằng Float; format VND làm tròn để hiển thị, không phả
 | 1 | status hiện tại `canceled` | Bỏ qua, giữ canceled |
 | 2 | total <= 0 và chưa trả | draft |
 | 3 | remaining <= 0 và total khác 0 | paid |
-| 4 | paid > 0 và remaining > 0 | partially_paid |
-| 5 | due_date < hôm nay và trạng thái đang pending/partial/overdue | overdue |
-| 6 | force_pending và trạng thái đang draft | pending |
+| 4 | force_pending, hoặc không còn draft, hoặc đã trả một phần; due_date < hôm nay | overdue |
+| 5 | Cùng điều kiện kích hoạt dòng 4, chưa quá hạn và paid > 0 | partially_paid |
+| 6 | Cùng điều kiện kích hoạt dòng 4, chưa quá hạn và paid = 0 | pending |
 | 7 | Không khớp | Giữ nguyên trạng thái |
 
-Hệ quả: partial payment có ưu tiên cao hơn overdue; draft chưa trả không tự thành overdue chỉ vì hết hạn; force_pending chỉ đổi draft. Không giả định đây là state machine đầy đủ hoặc luôn tự phục hồi paid/overdue.
+Quá hạn có ưu tiên hơn thanh toán một phần. Draft chưa trả vẫn giữ draft cho đến xác nhận/force_pending; reset tiền đã trả từ paid chuyển về pending hoặc overdue theo hạn. Canceled giữ nguyên.
 
-Actions: `action_confirm()` chỉ xử lý draft, yêu cầu total > 0 rồi đặt pending; `action_paid()` đặt paid_amount = total; `action_cancel()` đặt canceled. UI ẩn nút theo status nhưng Python actions không có mọi guard tương ứng.
+Actions: `action_confirm()` chỉ xử lý draft, yêu cầu total > 0 rồi đặt pending và auto status theo hạn; `action_paid()` khóa row hóa đơn, từ chối canceled, đặt paid_amount = total; `action_cancel()` đặt canceled. Các lệnh paid/pay/unpaid khóa row và refresh cache trước khi thay đổi để tránh mất cập nhật đồng thời.
 
 `write()` kiểm tra set `_locked_after_draft_fields` trước khi ghi. Set gồm phòng, tháng, ngày, hạn, reading, rent, điện/nước usage và giá, utilities, phí khác, discount. Đổi status cùng lúc không bỏ qua kiểm tra trạng thái cũ. Paid_amount, notes, status không thuộc set khóa. Không có override invoice unlink để cấm xóa theo trạng thái.
 
-Validation ngày: due_date không trước invoice_date (bằng nhau được phép). Tháng parse bằng datetime. Validation không âm kiểm tra rent, giá/usage điện/nước, utilities, discount, paid_amount; **other_charges có trong decorator nhưng bị thiếu trong tuple kiểm tra**. Không có kiểm tra discount <= subtotal hoặc paid_amount <= total ở ORM chung.
+Validation ngày: due_date không trước invoice_date (bằng nhau được phép). Tháng parse bằng datetime. Validation không âm kiểm tra rent, giá/usage điện/nước, utilities, other_charges, discount, paid_amount. ORM chặn discount > subtotal và paid_amount > total; không hỗ trợ trả dư.
 
 ## 7. Telegram: giao thức và flow
 
@@ -297,9 +300,9 @@ Validation ngày: due_date không trước invoice_date (bằng nhau được ph
 
 1. Đọc JSON bằng `get_json(silent=True) or {}`; dùng parameter sudo.
 2. Lấy secret từ header `X-Telegram-Bot-Api-Secret-Token`, fallback `kwargs.get('secret')` (query/form parameter của route). Không đọc `payload['secret']` từ JSON để xác thực.
-3. Chỉ khi configured secret khác rỗng và không khớp thì trả HTTP 403: `{"ok":false,"error":"invalid_secret"}`.
-4. Nhận `message` hoặc `edited_message`. Không có message thì HTTP 200: `{"ok":true,"ignored":true}`.
-5. Gọi `env['meter.reading'].sudo().process_telegram_message(message)`.
+3. Secret chưa cấu hình hoặc không khớp đều trả HTTP 403: `{"ok":false,"error":"invalid_secret"}`. Allowlist chưa cấu hình trả 403 `allowed_chats_not_configured`.
+4. Chỉ nhận `message`; bỏ qua edited_message và update không có message với HTTP 200 ignored. JSON không phải object, message không phải object hoặc update_id không phải integer không âm thì trả 400 `invalid_update`.
+5. Gọi `room.telegram.update.sudo()._process_update(payload)`: advisory transaction lock theo bot/update_id; receipt đã có thì trả HTTP 200 duplicate/ignored, không chạy lại handler và không gửi lại reply. Receipt mới và nghiệp vụ commit cùng transaction; thay bot token tạo namespace khác. Receipt chưa có chính sách tự dọn (cần giữ để chống replay).
 6. Gửi message kết quả qua Bot API `sendMessage`, rồi trả result JSON HTTP 200.
 
 Outbound sendMessage POST JSON gồm `chat_id`, `text`, timeout 10 giây. Thiếu token/chat/text thì bỏ qua gửi. `URLError` được log và không cố ý rollback nghiệp vụ. Không có retry/queue, không kiểm tra body `ok` của sendMessage, không chia tin dài.
@@ -316,7 +319,7 @@ Outbound sendMessage POST JSON gồm `chat_id`, `text`, timeout 10 giây. Thiế
 | `/invoices P101` | Tối đa 10 invoice, sort kỳ/ngày/id giảm dần, gồm cả canceled |
 | `/readings P101` | Tối đa 10 reading, sort ngày/id giảm dần |
 | `/paid INV-2026-0001` | Ghi đã trả đủ bằng action_paid |
-| `/pay INV-2026-0001 1000000` | Cộng số tiền > 0, cap ở total_amount, gọi cập nhật status force_pending |
+| `/pay INV-2026-0001 1000000` | Cộng số tiền > 0, từ chối nếu vượt total_amount hoặc canceled, cập nhật status force_pending |
 | `/unpaid INV-2026-0001` | Reset paid_amount = 0 rồi cập nhật status force_pending |
 
 Dispatcher so sánh uppercase nên tên lệnh không phân biệt hoa thường; mã phòng và số invoice search `=` giữ nguyên chuỗi. Chưa hỗ trợ `/start`, `/help@botname`, `/reading@botname ...`, callback query, ảnh/OCR, thay công tơ/manual override qua syntax command.
@@ -329,7 +332,7 @@ Room lookup là domain OR trên ba field, limit 2: không có → lỗi; >1 → 
 
 Upsert đọc `(room_id,reading_date)` chính xác, lấy record mới nhất khi có nhiều bản ghi trùng. Luôn chuẩn bị số trước, preview bằng `new(vals)` rồi kiểm tra regression. Existing có invoice thì lỗi; chưa có invoice thì write; không tìm thấy thì create. Không có SQL unique cho key upsert, không có khóa chống race.
 
-`process_telegram_message()` lấy text, kiểm tra allowlist chat ID, dispatch và bắt **ValidationError** để trả `status:error`. Allowlist CSV được so sánh `str(chat.id)`, không kiểm tra quyền `from.id` hay ownership phòng. Rỗng allowlist cho phép mọi chat. Không dùng savepoint rõ ràng bao quanh handler; exception loại khác có thể thành lỗi HTTP ngoài schema result thông thường.
+`process_telegram_message()` lấy text, kiểm tra allowlist chat ID, dispatch trong savepoint và bắt **ValidationError** để trả `status:error`; lỗi nghiệp vụ rollback các thay đổi trong handler. Allowlist CSV so sánh `str(chat.id)`, không kiểm tra quyền `from.id` hay ownership phòng. Rỗng allowlist từ chối mọi chat. Exception loại khác rollback request và có thể thành lỗi HTTP ngoài schema result thông thường.
 
 ### Kết quả và idempotency
 
@@ -337,7 +340,7 @@ Success dùng `status:'success'`, `message`, tùy command có `reading_id`, `inv
 
 Tin reading thành công có phòng, reference, ngày/tháng, số cũ → mới và usage, gợi ý `/inv`. Invoice summary có status key tiếng Anh, tiền phòng/điện/nước/tiện ích/phí/giảm/tổng/đã trả/còn lại, khối “Chi tiết”, gợi ý paid/pay. Payment summary có status/đã trả/còn lại. Tiền format dấu chấm nghìn, 0 chữ số thập phân.
 
-Không lưu/deduplicate `update_id` hoặc message ID. Telegram retry/edited_message của `/pay` có thể cộng tiền lại. `/inv` dùng invoice đã gắn để tránh tạo lại trên cùng reading. `/unpaid` không bảo đảm luôn chuyển paid về pending vì bảng trạng thái giữ paid nếu không khớp điều kiện đổi; canceled cũng luôn được giữ.
+Webhook deduplicate `update_id`; edited_message không chạy lệnh. Hai message mới có update_id khác nhau vẫn là hai khoản trả riêng. `/inv` dùng invoice đã gắn để tránh tạo lại trên cùng reading. `/unpaid` reset tiền và trạng thái về pending/overdue; paid/pay/unpaid từ chối canceled. Lỗi nghiệp vụ đã trả HTTP 200 cũng được lưu receipt; muốn thử lại sau khi sửa đầu vào cần gửi message mới.
 
 ### Settings và setup
 
@@ -386,7 +389,7 @@ Root menu `room_rental_menu`: “Quản Lý Phòng Trọ”, icon `room_rental_e
 | Cấu Hình | Giá Tiện Ích, Lịch Sử Phòng |
 | Báo Cáo | Hóa Đơn, Chi Phí (actions pivot,graph,list) |
 
-Phòng mở `kanban,list,form`; kanban có tài chính, ảnh, chủ phòng, count, thời gian thuê. Badge “Sắp hết hạn” chỉ kiểm tra có end_date, không tính khoảng cách đến ngày hết hạn. Form có notebook các quan hệ và chatter. Nút xem hóa đơn/chỉ số từ phòng trả `view_mode='tree,form'` trong Python, trong khi XML chính dùng `list,form`; đây là điểm cần smoke test Odoo 19.
+Phòng mở `kanban,list,form`; kanban có tài chính, ảnh, chủ phòng, count, thời gian thuê. Badge “Sắp hết hạn” chỉ kiểm tra có end_date, không tính khoảng cách đến ngày hết hạn. Form có notebook các quan hệ và chatter. Nút xem hóa đơn/chỉ số từ phòng và XML dùng `view_mode='list,form'`.
 
 Reading form có tổng quan, tab điện/nước, cờ thay, nhập tay, ảnh, tạo/mở hóa đơn. Readonly XML không hoàn toàn giống set khóa Python (ví dụ replacement_last), nên guard server vẫn là nguồn quyết định cuối.
 
@@ -399,13 +402,13 @@ Invoice form có confirm/paid/cancel/PDF, statusbar, chi tiết và ghi chú, pa
 - `window.formatVND` helper global. Format chỉ hiển thị; không đổi kiểu trường hoặc quy tắc tính tiền.
 - Kanban dùng các field Python `*_fmt`, không gọi widget để format trực tiếp.
 
-`reports/invoice_template.xml`: QWeb `report_room_invoice` gọi `web.external_layout`, loop docs, hiển thị phòng, kỳ, ngày/hạn, bảng tiền, đã trả/còn lại, manual_breakdown, notes. Action `report_room_invoice_pdf`, type qweb-pdf; tên file `Invoice - <invoice_number>`. Template dùng t-esc giá trị tiền trực tiếp, không dùng widget VND. `action_print_invoice()` trả False nếu không tìm được XML ID report. Chưa kiểm chứng report tag/layout với runtime Odoo 19 trong lần này.
+`reports/invoice_template.xml`: QWeb `report_room_invoice` gọi `web.external_layout`, loop docs, hiển thị phòng, kỳ, ngày/hạn, bảng tiền, đã trả/còn lại, manual_breakdown, notes. Action `report_room_invoice_pdf` khai báo bằng record `ir.actions.report`, binding model room.invoice, type qweb-pdf; tên file `Invoice - <invoice_number>`. Template dùng t-esc giá trị tiền trực tiếp, không dùng widget VND. `action_print_invoice()` trả False nếu không tìm được XML ID report. Admin chưa có layout công ty có thể nhận action cấu hình layout trước khi in. Tests render QWeb HTML; chưa kiểm tra PDF bằng wkhtmltopdf.
 
 ## 9. Cron và reminder
 
 `data/cron_data.xml` tạo `cron_room_invoice_status_update`, name “Room Invoice Status Update”, interval 1 ngày, active, gọi `model.cron_update_overdue_status()`.
 
-Method đọc reminder_days, parse int (ValueError fallback 3). Tìm invoice không paid/canceled, có due_date < today rồi gọi bảng auto status; vì ưu tiên partial/draft nên không phải tất cả kết quả search chuyển overdue.
+Method đọc reminder_days, parse int (ValueError fallback 3). Tìm invoice không paid/canceled, có due_date < today rồi gọi bảng auto status; partial chuyển overdue, draft chưa trả vẫn giữ draft.
 
 Tìm invoice draft/pending/partial với due_date từ hôm nay đến hôm nay + reminder_days, tạo todo activity nếu chưa có cùng activity type và summary “Nhắc thanh toán hóa đơn”. Deadline = due_date, note gồm số/hạn/còn lại. Không có logic gửi Telegram nhắc hạn, email template riêng, hoặc tự close reminder khi đã thanh toán trong code custom này.
 
@@ -427,16 +430,16 @@ Tất cả key có prefix `room_rental_expense.`. XML `data/room_config_data.xml
 | `default_other_utilities_price` | 0 | Utilities fallback/tháng |
 | `reminder_days` | 3 | Cửa sổ nhắc trước hạn |
 | `telegram_bot_token` | rỗng | sendMessage/setMyCommands |
-| `telegram_webhook_secret` | rỗng | Xác thực inbound nếu đã đặt |
-| `telegram_allowed_chat_ids` | rỗng | CSV chat.id; rỗng bỏ kiểm tra |
+| `telegram_webhook_secret` | rỗng | Bắt buộc để nhận webhook; thiếu/sai trả 403 |
+| `telegram_allowed_chat_ids` | rỗng | CSV chat.id bắt buộc; rỗng từ chối |
 
 Giá fallback float parse lỗi → 0. `noupdate=1` cũng áp dụng sequence và cron: upgrade module thường giữ dữ liệu đã cấu hình thay vì ghi lại XML defaults. Giá thực tế lấy từ DB, không mặc định luôn bằng bảng này.
 
 ### Local instance
 
-`config/local.conf`: PostgreSQL localhost:5432, user lamnv, db room_rental_dev; bind XML-RPC 0.0.0.0, configured port 1369; workers 0, max_cron_threads 0, limit_time_real 12000, log_level info, proxy_mode False, server_environment dev. Có khóa `admin_passwd`, `db_password`, `secret_key`; không copy giá trị vào prompt/file context.
+`config/local.conf`: PostgreSQL localhost:5432, user lamnv, db room_rental_dev; http_enable True, http_interface 0.0.0.0, http_port 1369; workers 0, max_cron_threads 0, limit_time_real 12000, limit_memory_hard 0 (không đặt hard limit), log_level info, proxy_mode False. Có admin_passwd và db_password; không copy giá trị vào prompt/file context. Đã thay xmlrpc/xmlrpc_interface/xmlrpc_port bằng http_enable/http_interface/http_port; bỏ các option core Odoo 19 không nhận logrotate/secret_key/server_environment. Kiểm tra config bằng runtime Odoo 19 với --version ngày 2026-10-06 không còn warning cấu hình.
 
-addons_path gồm `project`, hai đường dẫn core Odoo bên ngoài, `addons_oca/addons_oca/web`, `~/code/learn_odoo`. Config có thể chứa option kế thừa/custom; phải xác minh Odoo runtime đọc option nào, không khẳng định bind/port chỉ dựa file này.
+addons_path gồm `project`, `/home/lamnv/code/odoo-19/odoo/addons`, `/home/lamnv/code/odoo-19/addons`, `addons_oca/addons_oca/web`, `~/code/learn_odoo`; đã kiểm tra các thư mục core tồn tại. local.conf được Git ignore và chứa secrets; thay đổi cấu hình chỉ ở local.
 
 Không có script khởi động/venv/requirements riêng của addon nghiệp vụ trong workspace. Dưới đây là **mẫu lệnh**, giả định chạy từ root workspace trong Linux/WSL, Python environment Odoo đã chuẩn bị và `../odoo/odoo-bin` thật sự tồn tại:
 
@@ -488,17 +491,17 @@ Các dependency này patch thành phần web toàn cục khi được cài: nế
 Các mục dưới là quan sát từ code, không phải danh sách bug đã tái hiện ở runtime.
 
 1. **Phạm vi cá nhân:** không tenant/contract model, multi-company isolation, payment ledger, đối soát ngân hàng hoặc accounting integration. Một số tên/docs dùng “phải thu”; không vì vậy suy luận đây là hệ thống thu tiền đa người thuê.
-2. **Quyền rộng:** ACL cho cả 8 model CRUD đầy đủ với base.group_user; không có record rules custom. Webhook sudo và secret/allowlist optional; production phải chủ động cấu hình kiểm soát truy cập.
-3. **Tổng phòng không lọc hủy/nháp**, history không lọc thời gian; cọc/chi phí không tự vào invoice.
-4. **Reading không unique phòng/ngày/tháng**; invoice không unique số/tháng/phòng; `_sql_constraints` là khai báo cần kiểm tra thực sự cài vào DB Odoo 19.
+2. **Quyền rộng:** ACL cho 8 model nghiệp vụ CRUD đầy đủ với base.group_user; không có record rules custom. Receipt chỉ cấp đọc cho base.group_system, ghi bằng sudo nội bộ. Webhook sudo nhưng secret/allowlist bắt buộc.
+3. **Tổng phòng đã loại canceled** ở tổng hóa đơn/đã trả/còn lại; dependency gồm status để cập nhật khi hủy. Vẫn tính draft; history chưa lọc thời gian/hủy; cọc/chi phí không tự vào invoice.
+4. **Reading không unique phòng/ngày/tháng**; invoice không unique số/tháng/phòng. Unique mã Telegram, cấu hình phòng/ngày và invoice/reading dùng models.Constraint. Upgrade DB có dữ liệu cũ trùng cần xử lý dữ liệu trước khi cài constraint; không tự xóa dữ liệu trùng.
 5. **Đồng bộ liên kết không đối xứng hoàn toàn:** invoice điều khiển sync; ghi trực tiếp reading.invoice_id không chạy chiều ngược. Không tự cascade recalculation kỳ sau khi sửa reading trước.
-6. **Bảng status có điều kiện giữ trạng thái cũ:** partial quá hạn vẫn partial; draft hết hạn chưa tự overdue; unpaid trên paid có thể vẫn paid. Hóa đơn canceled vẫn có thể bị đổi paid_amount bởi actions/commands nhưng auto status bỏ qua canceled.
-7. **Validation tài chính chưa đầy đủ:** other_charges âm không bị tuple constraint chặn; discount vượt subtotal/overpayment không bị constraint chung chặn; các model bổ trợ không kiểm tra số âm/ngày.
+6. **Status:** partial quá hạn chuyển overdue; unpaid từ paid về pending/overdue. Draft chưa trả hết hạn chưa tự overdue. Actions/commands thanh toán từ chối canceled; write paid_amount trực tiếp vẫn theo ràng buộc tài chính, không bị khóa theo canceled.
+7. **Validation tài chính:** đã chặn other_charges âm, discount vượt subtotal, overpayment. Model bổ trợ cọc/chi phí vẫn chưa kiểm tra số âm/ngày.
 8. **Create áp giá force** có thể ghi đè giá tay; rent 0 có thể bị thay bằng default_rent. Reprice theo invoice_date, không chỉ theo invoice_month.
-9. **Telegram chưa dedup/retry-safe cho pay**, chưa normalize command @botname, chưa chia message dài, chưa xử lý file/OCR; chỉ ValidationError được chuyển schema lỗi nghiệp vụ.
-10. **UI và runtime cần kiểm tra:** action Python còn tree,form; report dùng tag report; compatibility các API/constraint Odoo 19 chưa được xác nhận bằng khởi động trong lần tạo tài liệu. Kanban badge không thực sự kiểm tra sắp hết hạn.
+9. **Telegram đã dedup update_id**, bỏ qua edited_message, savepoint rollback lỗi nghiệp vụ; chưa normalize command @botname, chia message dài hoặc xử lý file/OCR. Chỉ ValidationError chuyển schema lỗi nghiệp vụ; receipt chưa tự dọn.
+10. **UI:** action Python dùng list,form, report dùng record ir.actions.report. Kanban badge chưa thực sự kiểm tra sắp hết hạn; PDF/assets UI cần kiểm tra trực quan riêng.
 11. **Local cron tắt**, public tunnel/outbound/token không thể xác nhận từ code. Không có Prometheus/Grafana/APM custom đã triển khai trong addon. Khi theo dõi vận hành, kiểm tra Odoo/proxy logs, webhook 403/5xx, reply failures, lần chạy cron và reminder activities; đây là hướng dẫn, không phải monitoring đã tích hợp.
-12. **Test chưa có cho custom addon**; `.gitignore` module có pattern test_*.py, cần kiểm tra tracking khi thêm tests để không vô tình bỏ sót test file.
+12. **Tests:** đã thêm TransactionCase/HttpCase riêng và bỏ pattern test_*.py trong .gitignore. Chưa có browser tour, stress test đồng thời, kiểm thử Telegram bot/public tunnel thật.
 
 Không tự sửa các behavior này khi task chỉ yêu cầu viết context. Nếu task sau yêu cầu thay, xác định behavior mong muốn và cập nhật phần context tương ứng.
 
@@ -523,14 +526,20 @@ Không tự sửa các behavior này khi task chỉ yêu cầu viết context. N
 
 ### Kiểm chứng phù hợp
 
-Chưa có bộ test custom để chạy ngay. Các gợi ý kiểm chứng bên dưới là checklist, không phải kết quả tests đã pass. Khi bổ sung tests đặt trong `project/room_rental_expense/tests/`, import tests đúng chuẩn Odoo và kiểm tra .gitignore.
+Tests nằm trong `project/room_rental_expense/tests/`: test_room_invoice.py (tiền, giá, trạng thái, hủy/tổng, validation, SQL constraints, khóa/link, report HTML), test_meter_reading.py (normal/replacement/manual/regression/previous reading), test_telegram.py (commands, rollback, receipt trùng, ACL, HTTP auth/retry/edited/invalid payload). Các gợi ý bổ sung bên dưới là checklist, không phải kết quả tests đã pass.
 
-Mẫu test runner sau khi đã thêm tests, dùng DB riêng:
+**Kết quả thực chạy 2026-10-06:** runtime `/home/lamnv/code/odoo-19/odoo-bin`, Python `/home/lamnv/.pyenv/versions/odoo19-env/bin/python`, PostgreSQL local; database riêng `room_rental_test_20261006`, HTTP test port 1379, không dùng config/local.conf hoặc bot thật. Cài addon và upgrade thành công; lần chạy cuối **25 test methods, 0 failed, 0 errors**, bao gồm test migration sửa stored totals/status cũ, render QWeb HTML và HTTP webhook. Log `/tmp/room_rental_test_20261006_final.log` nằm ngoài Git. Chưa kiểm thử PDF wkhtmltopdf, browser assets, race/stress đồng thời, bot/tunnel thật hoặc upgrade database dữ liệu production. Database test được giữ lại để chạy lại.
+
+Mẫu test runner dùng DB riêng (thay các placeholder bằng runtime/addons-path thực tế; không dùng config DB/bot thật):
+
+Sau format ngày 2026-10-06: kiểm tra toàn bộ 20 file Python custom (gồm tests/migration), không dòng code nào vượt 79 ký tự, comment/docstring không vượt 72; pycodestyle với max-line-length=79 pass. So sánh AST trước/sau không đổi logic hoặc chuỗi phản hồi (chỉ chuẩn hóa khoảng trắng trong docstring/description). Chạy lại 25 tests Odoo: 0 failed, 0 errors; log `/tmp/room_rental_test_20261006_format.log`. Không format dependency OCA.
 
 ```bash
-python ../odoo/odoo-bin -c config/local.conf -d <test_db> \
-  -i room_rental_expense --test-enable \
-  --test-tags /room_rental_expense --stop-after-init
+<odoo_python> <odoo_source>/odoo-bin --config=/dev/null -d <test_db> \
+  --addons-path=<odoo_source>/addons,project,addons_oca/addons_oca/web \
+  --db_user=<test_db_user> --http-port=<test_port> --max-cron-threads=0 \
+  -i room_rental_expense --test-enable --without-demo=all \
+  --test-tags=/room_rental_expense --stop-after-init
 ```
 
 Ưu tiên test có ý nghĩa: previous reading theo ngày, counter replacement/manual, giá trước/sau ngày hiệu lực, draft lock/link uniqueness, exact status transitions/pay reset, duplicate Telegram pay, secret/allowlist, ORM và XML/report upgrade compatibility.

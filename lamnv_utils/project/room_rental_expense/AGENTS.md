@@ -20,5 +20,5 @@
 ## Kiểm chứng và bàn giao
 
 - Chọn test/smoke flow theo phần 13 của context. Nếu chưa có runtime Odoo/database test, ghi rõ phạm vi kiểm tra tĩnh; không gọi đó là kiểm thử tích hợp thành công.
-- Khi thêm tests, kiểm tra chúng không bị `.gitignore` loại bỏ: module hiện có pattern `test_*.py`.
+- Tests đặt trong `tests/`, import trong `tests/__init__.py`; kiểm tra chúng không bị `.gitignore` loại bỏ. Chạy bằng test runner Odoo với database riêng.
 - Không sửa bug/giới hạn đã liệt kê trong context ngoài phạm vi task. Khi behavior thay đổi, cập nhật phần nghiệp vụ, giới hạn, bảng đọc/sửa và hướng dẫn kiểm chứng liên quan trong context chung.

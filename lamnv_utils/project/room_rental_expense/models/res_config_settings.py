@@ -14,21 +14,23 @@ class ResConfigSettings(models.TransientModel):
     )
     telegram_webhook_secret = fields.Char(
         string='Telegram Webhook Secret',
+        help=(
+            'Bắt buộc để nhận webhook. '
+            'Phải khớp secret_token khi setWebhook.'
+        ),
         config_parameter='room_rental_expense.telegram_webhook_secret',
     )
     telegram_allowed_chat_ids = fields.Char(
         string='Telegram Allowed Chat IDs',
+        help='Bắt buộc. Danh sách chat ID được phép, ngăn cách bằng dấu phẩy.',
         config_parameter='room_rental_expense.telegram_allowed_chat_ids',
     )
 
     def action_register_telegram_commands(self):
         self.ensure_one()
-        token = (
-            self.telegram_bot_token
-            or self.env['ir.config_parameter'].sudo().get_param(
-                'room_rental_expense.telegram_bot_token'
-            )
-        )
+        token = self.telegram_bot_token or self.env[
+            'ir.config_parameter'
+        ].sudo().get_param('room_rental_expense.telegram_bot_token')
         if not token:
             raise UserError(
                 _(
@@ -38,9 +40,11 @@ class ResConfigSettings(models.TransientModel):
             )
 
         endpoint = f'https://api.telegram.org/bot{token}/setMyCommands'
-        payload = json.dumps({
-            'commands': self._get_telegram_commands_payload(),
-        }).encode('utf-8')
+        payload = json.dumps(
+            {
+                'commands': self._get_telegram_commands_payload(),
+            }
+        ).encode('utf-8')
         req = urlrequest.Request(
             endpoint,
             data=payload,
@@ -52,16 +56,14 @@ class ResConfigSettings(models.TransientModel):
                 result = json.loads(response.read().decode('utf-8'))
         except error.URLError as exc:
             raise UserError(
-                _(
-                    'Không thể kết nối Telegram Bot API để đăng ký lệnh: %s'
-                ) % exc
+                _('Không thể kết nối Telegram Bot API để đăng ký lệnh: %s')
+                % exc
             ) from exc
 
         if not result.get('ok'):
             raise UserError(
-                _(
-                    'Telegram từ chối đăng ký lệnh: %s'
-                ) % (result.get('description') or _('Lỗi không xác định'))
+                _('Telegram từ chối đăng ký lệnh: %s')
+                % (result.get('description') or _('Lỗi không xác định'))
             )
 
         return {
@@ -69,9 +71,7 @@ class ResConfigSettings(models.TransientModel):
             'tag': 'display_notification',
             'params': {
                 'title': _('Thành công'),
-                'message': _(
-                    'Đã đăng ký danh sách lệnh Telegram cho bot.'
-                ),
+                'message': _('Đã đăng ký danh sách lệnh Telegram cho bot.'),
                 'type': 'success',
                 'sticky': False,
             },
