@@ -7,3 +7,4 @@ from . import room_history
 from . import room_deposit
 from . import room_issue
 from . import res_config_settings
+from . import telegram_update

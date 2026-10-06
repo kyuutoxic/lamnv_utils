@@ -98,13 +98,14 @@
         </t>
     </template>
 
-    <report
-        id="report_room_invoice_pdf"
-        model="room.invoice"
-        report_type="qweb-pdf"
-        name="room_rental_expense.report_room_invoice"
-        file="room_rental_expense.report_room_invoice"
-        print_report_name="'Invoice - %s' % (object.invoice_number or '')"
-        string="In Hóa Đơn"
-    />
+    <record id="report_room_invoice_pdf" model="ir.actions.report">
+        <field name="name">In Hóa Đơn</field>
+        <field name="model">room.invoice</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">room_rental_expense.report_room_invoice</field>
+        <field name="report_file">room_rental_expense.report_room_invoice</field>
+        <field name="print_report_name">'Invoice - %s' % (object.invoice_number or '')</field>
+        <field name="binding_model_id" ref="model_room_invoice"/>
+        <field name="binding_type">report</field>
+    </record>
 </odoo>

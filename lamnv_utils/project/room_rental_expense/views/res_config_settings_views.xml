@@ -13,7 +13,7 @@
                          groups="base.group_system">
                         <block title="Telegram" id="room_rental_expense_telegram_settings">
                             <setting string="Cấu hình Telegram Bot"
-                                     help="Cấu hình token, webhook secret, danh sách chat được phép và đăng ký các lệnh slash cho bot.">
+                                     help="Cấu hình token và đăng ký lệnh slash. Webhook secret và danh sách chat được phép là bắt buộc để nhận webhook.">
                                 <div class="content-group">
                                     <div class="row mt16">
                                         <label for="telegram_bot_token" string="Bot Token" class="col-lg-4 o_light_label"/>

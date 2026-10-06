@@ -12,118 +12,96 @@ class RoomInvoice(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _rec_name = 'invoice_number'
     _order = 'invoice_period_date desc, invoice_date desc, id desc'
-    _sql_constraints = [
-        (
-            'room_invoice_unique_meter_reading',
-            'unique(meter_reading_id)',
-            'Mỗi chỉ số công tơ chỉ được gắn với một hóa đơn.'
-        ),
-    ]
+    _room_invoice_unique_meter_reading = models.Constraint(
+        'unique(meter_reading_id)',
+        'Mỗi chỉ số công tơ chỉ được gắn với một hóa đơn.',
+    )
 
     room_id = fields.Many2one(
         'rental.room',
         string='Phòng Trọ',
         required=True,
         ondelete='cascade',
-        tracking=True
+        tracking=True,
     )
     invoice_number = fields.Char(
-        string='Số Hóa Đơn',
-        readonly=True,
-        copy=False,
-        tracking=True
+        string='Số Hóa Đơn', readonly=True, copy=False, tracking=True
     )
     invoice_month = fields.Char(
-        string='Tháng Hóa Đơn (MM/YYYY)',
-        required=True,
-        tracking=True
+        string='Tháng Hóa Đơn (MM/YYYY)', required=True, tracking=True
     )
     invoice_date = fields.Date(string='Ngày Lập Hóa Đơn', tracking=True)
     invoice_period_date = fields.Date(
         string='Ngày Kỳ Hóa Đơn',
         compute='_compute_invoice_period_date',
-        store=True
+        store=True,
     )
     due_date = fields.Date(string='Hạn Thanh Toán', tracking=True)
     status = fields.Selection(
-        [('draft', 'Nháp'),
-         ('pending', 'Chờ Thanh Toán'),
-         ('paid', 'Đã Thanh Toán'),
-         ('partially_paid', 'Thanh Toán Một Phần'),
-         ('overdue', 'Quá Hạn'),
-         ('canceled', 'Hủy')],
+        [
+            ('draft', 'Nháp'),
+            ('pending', 'Chờ Thanh Toán'),
+            ('paid', 'Đã Thanh Toán'),
+            ('partially_paid', 'Thanh Toán Một Phần'),
+            ('overdue', 'Quá Hạn'),
+            ('canceled', 'Hủy'),
+        ],
         string='Trạng Thái',
         default='draft',
-        tracking=True
+        tracking=True,
     )
 
     # Chi tiết hóa đơn
     rent_amount = fields.Float(
-        string='Tiền Thuê (VND)',
-        required=True,
-        tracking=True
+        string='Tiền Thuê (VND)', required=True, tracking=True
     )
-    electric_price_per_unit = fields.Float(
-        string='Giá Điện (VND/kWh)'
-    )
+    electric_price_per_unit = fields.Float(string='Giá Điện (VND/kWh)')
     electric_usage = fields.Float(string='Lượng Điện (kWh)')
     electric_amount = fields.Float(
         string='Tiền Điện (VND)',
         compute='_compute_electric_amount',
-        store=True
+        store=True,
     )
 
-    water_price_per_unit = fields.Float(
-        string='Giá Nước (VND/m³)'
-    )
+    water_price_per_unit = fields.Float(string='Giá Nước (VND/m³)')
     water_usage = fields.Float(string='Lượng Nước (m³)')
     water_amount = fields.Float(
-        string='Tiền Nước (VND)',
-        compute='_compute_water_amount',
-        store=True
+        string='Tiền Nước (VND)', compute='_compute_water_amount', store=True
     )
 
     utilities_amount = fields.Float(
-        string='Tiền Tiện Ích Khác (VND)',
-        default=0
+        string='Tiền Tiện Ích Khác (VND)', default=0
     )
-    other_charges = fields.Float(
-        string='Phí Khác (VND)',
-        default=0
-    )
+    other_charges = fields.Float(string='Phí Khác (VND)', default=0)
     subtotal = fields.Float(
         string='Tổng Cộng (VND)',
         compute='_compute_subtotal',
         store=True,
-        tracking=True
+        tracking=True,
     )
     discount_amount = fields.Float(
-        string='Chiết Khấu (VND)',
-        default=0,
-        tracking=True
+        string='Chiết Khấu (VND)', default=0, tracking=True
     )
     total_amount = fields.Float(
         string='Tổng Thanh Toán (VND)',
         compute='_compute_total_amount',
         store=True,
-        tracking=True
+        tracking=True,
     )
     paid_amount = fields.Float(
-        string='Số Tiền Đã Thanh Toán (VND)',
-        default=0,
-        tracking=True
+        string='Số Tiền Đã Thanh Toán (VND)', default=0, tracking=True
     )
     remaining_amount = fields.Float(
         string='Số Tiền Còn Lại (VND)',
         compute='_compute_remaining_amount',
         store=True,
-        tracking=True
+        tracking=True,
     )
     notes = fields.Text(string='Ghi Chú', tracking=True)
     manual_breakdown = fields.Text(
         string='Tóm Tắt Chi Tiết',
         compute='_compute_manual_breakdown',
-        readonly=True
+        readonly=True,
     )
     meter_reading_id = fields.Many2one(
         'meter.reading',
@@ -132,12 +110,10 @@ class RoomInvoice(models.Model):
             "[('room_id', '=', room_id), '|', "
             "('invoice_id', '=', False), ('invoice_id', '=', id)]"
         ),
-        ondelete='set null'
+        ondelete='set null',
     )
     applied_config_id = fields.Many2one(
-        'room.config',
-        string='Cấu Hình Được Áp Dụng',
-        readonly=True
+        'room.config', string='Cấu Hình Được Áp Dụng', readonly=True
     )
     _locked_after_draft_fields = {
         'room_id',
@@ -155,13 +131,11 @@ class RoomInvoice(models.Model):
         'discount_amount',
     }
 
-    @api.model
-    def create(self, vals):
-        if isinstance(vals, list):
-            new_vals = [self._inject_default_values(val.copy())
-                        for val in vals]
-        else:
-            new_vals = self._inject_default_values(vals.copy())
+    @api.model_create_multi
+    def create(self, vals_list):
+        new_vals = [
+            self._inject_default_values(val.copy()) for val in vals_list
+        ]
         records = super().create(new_vals)
         records._apply_config_prices(force=True)
         records._sync_meter_readings()
@@ -180,8 +154,10 @@ class RoomInvoice(models.Model):
                     )
                 )
         res = super().write(vals)
-        if any(field in vals for field in
-               ('room_id', 'invoice_month', 'invoice_date')):
+        if any(
+            field in vals
+            for field in ('room_id', 'invoice_month', 'invoice_date')
+        ):
             self._apply_config_prices(force=True)
         if 'meter_reading_id' in vals:
             self._sync_meter_readings()
@@ -198,11 +174,9 @@ class RoomInvoice(models.Model):
     @api.depends('electric_usage', 'electric_price_per_unit')
     def _compute_electric_amount(self):
         for invoice in self:
-            if (invoice.electric_usage and
-                    invoice.electric_price_per_unit):
+            if invoice.electric_usage and invoice.electric_price_per_unit:
                 invoice.electric_amount = (
-                    invoice.electric_usage *
-                    invoice.electric_price_per_unit
+                    invoice.electric_usage * invoice.electric_price_per_unit
                 )
             else:
                 invoice.electric_amount = 0
@@ -217,24 +191,27 @@ class RoomInvoice(models.Model):
             else:
                 invoice.water_amount = 0
 
-    @api.depends('rent_amount', 'electric_amount', 'water_amount',
-                 'utilities_amount', 'other_charges')
+    @api.depends(
+        'rent_amount',
+        'electric_amount',
+        'water_amount',
+        'utilities_amount',
+        'other_charges',
+    )
     def _compute_subtotal(self):
         for invoice in self:
             invoice.subtotal = (
-                invoice.rent_amount +
-                invoice.electric_amount +
-                invoice.water_amount +
-                invoice.utilities_amount +
-                invoice.other_charges
+                invoice.rent_amount
+                + invoice.electric_amount
+                + invoice.water_amount
+                + invoice.utilities_amount
+                + invoice.other_charges
             )
 
     @api.depends('subtotal', 'discount_amount')
     def _compute_total_amount(self):
         for invoice in self:
-            invoice.total_amount = (
-                invoice.subtotal - invoice.discount_amount
-            )
+            invoice.total_amount = invoice.subtotal - invoice.discount_amount
 
     @api.depends('total_amount', 'paid_amount')
     def _compute_remaining_amount(self):
@@ -257,7 +234,7 @@ class RoomInvoice(models.Model):
         'rent_amount',
         'utilities_amount',
         'other_charges',
-        'discount_amount'
+        'discount_amount',
     )
     def _compute_manual_breakdown(self):
         for invoice in self:
@@ -278,8 +255,16 @@ class RoomInvoice(models.Model):
             reading = invoice.meter_reading_id
             if invoice.water_usage or invoice.water_amount:
                 parts = ['Nước:']
-                if reading and reading.water_current is not None and reading.water_previous is not None:
-                    parts.append(f"{fmt(reading.water_current)} - {fmt(reading.water_previous)} = {fmt(invoice.water_usage)}")
+                if (
+                    reading
+                    and reading.water_current is not None
+                    and reading.water_previous is not None
+                ):
+                    parts.append(
+                        f"{fmt(reading.water_current)} - "
+                        f"{fmt(reading.water_previous)} = "
+                        f"{fmt(invoice.water_usage)}"
+                    )
                 else:
                     parts.append(f"{fmt(invoice.water_usage)}")
                 if invoice.water_price_per_unit:
@@ -289,8 +274,16 @@ class RoomInvoice(models.Model):
 
             if invoice.electric_usage or invoice.electric_amount:
                 parts = ['Điện:']
-                if reading and reading.electric_current is not None and reading.electric_previous is not None:
-                    parts.append(f"{fmt(reading.electric_current)} - {fmt(reading.electric_previous)} = {fmt(invoice.electric_usage)}")
+                if (
+                    reading
+                    and reading.electric_current is not None
+                    and reading.electric_previous is not None
+                ):
+                    parts.append(
+                        f"{fmt(reading.electric_current)} - "
+                        f"{fmt(reading.electric_previous)} = "
+                        f"{fmt(invoice.electric_usage)}"
+                    )
                 else:
                     parts.append(f"{fmt(invoice.electric_usage)}")
                 if invoice.electric_price_per_unit:
@@ -299,13 +292,17 @@ class RoomInvoice(models.Model):
                 lines.append(' '.join(parts))
 
             if invoice.utilities_amount:
-                lines.append(f"Tiện ích khác: {fmt_amount(invoice.utilities_amount)}")
+                lines.append(
+                    f"Tiện ích khác: {fmt_amount(invoice.utilities_amount)}"
+                )
 
             if invoice.other_charges:
                 lines.append(f"Phí khác: {fmt_amount(invoice.other_charges)}")
 
             if invoice.discount_amount:
-                lines.append(f"Giảm giá: -{fmt_amount(invoice.discount_amount)}")
+                lines.append(
+                    f"Giảm giá: -{fmt_amount(invoice.discount_amount)}"
+                )
 
             if invoice.rent_amount:
                 lines.append(f"Tiền phòng: {fmt_amount(invoice.rent_amount)}")
@@ -321,21 +318,44 @@ class RoomInvoice(models.Model):
                 continue
             if invoice.total_amount <= 0:
                 raise ValidationError(
-                    _('Chỉ có thể xác nhận hóa đơn có tổng thanh toán lớn hơn 0.')
+                    _(
+                        'Chỉ có thể xác nhận hóa đơn có tổng thanh toán '
+                        'lớn hơn 0.'
+                    )
                 )
             invoice.status = 'pending'
 
     def action_paid(self):
+        self._lock_for_payment()
         for invoice in self:
             invoice.paid_amount = invoice.total_amount
         self._auto_update_status()
+
+    def _lock_for_payment(self):
+        """Serialize payment commands and refresh values after
+        acquiring locks.
+        """
+        self.flush_recordset(['paid_amount', 'total_amount', 'status'])
+        for invoice in self.sorted('id'):
+            self.env.cr.execute(
+                'SELECT id FROM room_invoice WHERE id = %s FOR UPDATE',
+                [invoice.id],
+            )
+        self.invalidate_recordset(
+            ['paid_amount', 'total_amount', 'remaining_amount', 'status']
+        )
+        if self.filtered(lambda invoice: invoice.status == 'canceled'):
+            raise ValidationError(_('Không thể thanh toán hóa đơn đã hủy.'))
 
     def action_cancel(self):
         self.status = 'canceled'
 
     def action_print_invoice(self):
         self.ensure_one()
-        report = self.env.ref('room_rental_expense.report_room_invoice_pdf', raise_if_not_found=False)
+        report = self.env.ref(
+            'room_rental_expense.report_room_invoice_pdf',
+            raise_if_not_found=False,
+        )
         if not report:
             return False
         return report.report_action(self)
@@ -351,29 +371,39 @@ class RoomInvoice(models.Model):
             if invoice.invoice_date and not invoice.invoice_month:
                 invoice.invoice_month = invoice.invoice_date.strftime('%m/%Y')
             # Tự động lấy tiền thuê mặc định từ phòng nếu chưa nhập
-            if invoice.room_id and not invoice.rent_amount and invoice.room_id.default_rent:
+            if (
+                invoice.room_id
+                and not invoice.rent_amount
+                and invoice.room_id.default_rent
+            ):
                 invoice.rent_amount = invoice.room_id.default_rent
             invoice._apply_config_prices(force=True)
 
     @api.constrains('meter_reading_id', 'room_id', 'invoice_month')
     def _check_meter_same_room(self):
         for invoice in self:
-            if (invoice.meter_reading_id and
-                    invoice.meter_reading_id.room_id != invoice.room_id):
+            if (
+                invoice.meter_reading_id
+                and invoice.meter_reading_id.room_id != invoice.room_id
+            ):
                 raise ValidationError(
                     _('Chỉ số công tơ phải thuộc cùng phòng với hóa đơn.')
                 )
-            if (invoice.meter_reading_id and
-                    invoice.meter_reading_id.invoice_id and
-                    invoice.meter_reading_id.invoice_id != invoice):
+            if (
+                invoice.meter_reading_id
+                and invoice.meter_reading_id.invoice_id
+                and invoice.meter_reading_id.invoice_id != invoice
+            ):
                 raise ValidationError(
-                    _(
-                        'Chỉ số công tơ này đã được gắn với hóa đơn %s.'
-                    ) % invoice.meter_reading_id.invoice_id.display_name
+                    _('Chỉ số công tơ này đã được gắn với hóa đơn %s.')
+                    % invoice.meter_reading_id.invoice_id.display_name
                 )
-            if (invoice.meter_reading_id and invoice.invoice_month and
-                    invoice.meter_reading_id.reading_month !=
-                    invoice.invoice_month):
+            if (
+                invoice.meter_reading_id
+                and invoice.invoice_month
+                and invoice.meter_reading_id.reading_month
+                != invoice.invoice_month
+            ):
                 raise ValidationError(
                     _('Chỉ số công tơ phải thuộc cùng tháng với hóa đơn.')
                 )
@@ -381,8 +411,11 @@ class RoomInvoice(models.Model):
     @api.constrains('invoice_date', 'due_date')
     def _check_due_date(self):
         for invoice in self:
-            if (invoice.invoice_date and invoice.due_date and
-                    invoice.due_date < invoice.invoice_date):
+            if (
+                invoice.invoice_date
+                and invoice.due_date
+                and invoice.due_date < invoice.invoice_date
+            ):
                 raise ValidationError(
                     _('Hạn thanh toán phải sau ngày lập hóa đơn.')
                 )
@@ -398,9 +431,15 @@ class RoomInvoice(models.Model):
                 )
 
     @api.constrains(
-        'rent_amount', 'electric_price_per_unit', 'electric_usage',
-        'water_price_per_unit', 'water_usage', 'utilities_amount',
-        'other_charges', 'discount_amount', 'paid_amount'
+        'rent_amount',
+        'electric_price_per_unit',
+        'electric_usage',
+        'water_price_per_unit',
+        'water_usage',
+        'utilities_amount',
+        'other_charges',
+        'discount_amount',
+        'paid_amount',
     )
     def _check_non_negative_amounts(self):
         for invoice in self:
@@ -411,6 +450,7 @@ class RoomInvoice(models.Model):
                 invoice.water_price_per_unit,
                 invoice.water_usage,
                 invoice.utilities_amount,
+                invoice.other_charges,
                 invoice.discount_amount,
                 invoice.paid_amount,
             )
@@ -419,8 +459,24 @@ class RoomInvoice(models.Model):
                     _('Các giá trị tiền và mức tiêu thụ không được âm.')
                 )
 
+    @api.constrains(
+        'subtotal', 'discount_amount', 'total_amount', 'paid_amount'
+    )
+    def _check_payment_limits(self):
+        for invoice in self:
+            if invoice.discount_amount > invoice.subtotal:
+                raise ValidationError(
+                    _('Chiết khấu không được vượt tổng cộng.')
+                )
+            if invoice.paid_amount > invoice.total_amount:
+                raise ValidationError(
+                    _('Số tiền đã trả không được vượt tổng thanh toán.')
+                )
+
     def _inject_default_values(self, vals):
-        room_id = vals.get('room_id') or self.env.context.get('default_room_id')
+        room_id = vals.get('room_id') or self.env.context.get(
+            'default_room_id'
+        )
         room = (room_id and self.env['rental.room'].browse(room_id)) or None
         if isinstance(vals, dict):
             working_vals = vals
@@ -437,14 +493,14 @@ class RoomInvoice(models.Model):
         if not working_vals.get('invoice_month') and invoice_date_value:
             date_obj = fields.Date.to_date(invoice_date_value)
             working_vals['invoice_month'] = date_obj.strftime('%m/%Y')
-        if (room and not working_vals.get('due_date') and
-                invoice_date_value):
+        if room and not working_vals.get('due_date') and invoice_date_value:
             date_obj = fields.Date.to_date(invoice_date_value)
             working_vals['due_date'] = date_obj + timedelta(days=7)
         if not working_vals.get('invoice_number'):
-            working_vals['invoice_number'] = self.env[
-                'ir.sequence'
-            ].next_by_code('room.invoice') or 'INV-2024-001'
+            working_vals['invoice_number'] = (
+                self.env['ir.sequence'].next_by_code('room.invoice')
+                or 'INV-2024-001'
+            )
         return working_vals
 
     def _apply_meter_usage_from_reading(self):
@@ -459,14 +515,17 @@ class RoomInvoice(models.Model):
             room = invoice.room_id
             if not room:
                 continue
-            # When editing invoices from the room form, room_id can be a NewId.
-            # Use the underlying record (origin) if available so that we can
+            # When editing invoices from the room form, room_id can be
+            # a NewId. Use the underlying record (origin) if available
+            # so that we can
             # still resolve the proper room.config for onchanges.
             if hasattr(room, '_origin') and room._origin:
                 room = room._origin
-            reference_date = invoice.invoice_date or self._parse_month_to_date(
-                invoice.invoice_month
-            ) or fields.Date.context_today(invoice)
+            reference_date = (
+                invoice.invoice_date
+                or self._parse_month_to_date(invoice.invoice_month)
+                or fields.Date.context_today(invoice)
+            )
             config = room._get_active_config(reference_date)
             if config:
                 if force or not invoice.electric_price_per_unit:
@@ -475,10 +534,10 @@ class RoomInvoice(models.Model):
                     invoice.water_price_per_unit = config.water_price
                 if force or not invoice.utilities_amount:
                     invoice.utilities_amount = (
-                        config.wifi_price +
-                        config.trash_fee +
-                        config.parking_fee +
-                        config.other_utilities_price
+                        config.wifi_price
+                        + config.trash_fee
+                        + config.parking_fee
+                        + config.other_utilities_price
                     )
                 invoice.applied_config_id = config
             else:
@@ -491,23 +550,26 @@ class RoomInvoice(models.Model):
                         'room_rental_expense.default_water_price'
                     )
                 if force or not invoice.utilities_amount:
-                    invoice.utilities_amount = self._get_default_utilities_amount()
+                    invoice.utilities_amount = (
+                        self._get_default_utilities_amount()
+                    )
                 if force:
                     invoice.applied_config_id = False
 
     def _sync_meter_readings(self):
         MeterReading = self.env['meter.reading']
         for invoice in self:
-            linked_readings = MeterReading.search([
-                ('invoice_id', '=', invoice.id)
-            ])
+            linked_readings = MeterReading.search(
+                [('invoice_id', '=', invoice.id)]
+            )
             if invoice.meter_reading_id:
-                if (invoice.meter_reading_id.invoice_id and
-                        invoice.meter_reading_id.invoice_id != invoice):
+                if (
+                    invoice.meter_reading_id.invoice_id
+                    and invoice.meter_reading_id.invoice_id != invoice
+                ):
                     raise ValidationError(
-                        _(
-                            'Chỉ số công tơ này đã được gắn với hóa đơn %s.'
-                        ) % invoice.meter_reading_id.invoice_id.display_name
+                        _('Chỉ số công tơ này đã được gắn với hóa đơn %s.')
+                        % invoice.meter_reading_id.invoice_id.display_name
                     )
                 (linked_readings - invoice.meter_reading_id).write(
                     {'invoice_id': False}
@@ -527,13 +589,17 @@ class RoomInvoice(models.Model):
                 new_status = 'draft'
             elif invoice.remaining_amount <= 0 and invoice.total_amount:
                 new_status = 'paid'
-            elif invoice.paid_amount > 0 and invoice.remaining_amount > 0:
-                new_status = 'partially_paid'
-            elif (invoice.due_date and invoice.due_date < today and
-                  invoice.status in ('pending', 'partially_paid', 'overdue')):
-                new_status = 'overdue'
-            elif force_pending and invoice.status == 'draft':
-                new_status = 'pending'
+            elif (
+                force_pending
+                or invoice.status != 'draft'
+                or invoice.paid_amount
+            ):
+                if invoice.due_date and invoice.due_date < today:
+                    new_status = 'overdue'
+                elif invoice.paid_amount > 0:
+                    new_status = 'partially_paid'
+                else:
+                    new_status = 'pending'
             if new_status != invoice.status:
                 invoice.status = new_status
 
@@ -548,24 +614,30 @@ class RoomInvoice(models.Model):
     @api.model
     def cron_update_overdue_status(self):
         today = fields.Date.context_today(self)
-        reminder_param = self.env['ir.config_parameter'].sudo().get_param(
-            'room_rental_expense.reminder_days', '3'
+        reminder_param = (
+            self.env['ir.config_parameter']
+            .sudo()
+            .get_param('room_rental_expense.reminder_days', '3')
         )
         try:
             reminder_days = int(reminder_param)
         except ValueError:
             reminder_days = 3
-        overdue = self.search([
-            ('status', 'not in', ('paid', 'canceled')),
-            ('due_date', '<', today),
-            ('due_date', '!=', False),
-        ])
+        overdue = self.search(
+            [
+                ('status', 'not in', ('paid', 'canceled')),
+                ('due_date', '<', today),
+                ('due_date', '!=', False),
+            ]
+        )
         overdue._auto_update_status()
-        upcoming = self.search([
-            ('status', 'in', ('draft', 'pending', 'partially_paid')),
-            ('due_date', '>=', today),
-            ('due_date', '<=', today + relativedelta(days=reminder_days)),
-        ])
+        upcoming = self.search(
+            [
+                ('status', 'in', ('draft', 'pending', 'partially_paid')),
+                ('due_date', '>=', today),
+                ('due_date', '<=', today + relativedelta(days=reminder_days)),
+            ]
+        )
         for invoice in upcoming:
             invoice._schedule_reminder_activity()
 
@@ -573,29 +645,25 @@ class RoomInvoice(models.Model):
         self.ensure_one()
         activity_type = self.env.ref('mail.mail_activity_data_todo')
         existing = self.activity_ids.filtered(
-            lambda act: act.activity_type_id == activity_type and
-            act.summary == _('Nhắc thanh toán hóa đơn')
+            lambda act: act.activity_type_id == activity_type
+            and act.summary == _('Nhắc thanh toán hóa đơn')
         )
         if existing:
             return
-        note = _(
-            'Hóa đơn %s đến hạn vào %s.\nSố tiền còn lại: %s VND.'
-        ) % (
+        note = _('Hóa đơn %s đến hạn vào %s.\nSố tiền còn lại: %s VND.') % (
             self.invoice_number or '',
             self.due_date or '',
-            self.remaining_amount
+            self.remaining_amount,
         )
         self.activity_schedule(
             activity_type.id,
             date_deadline=self.due_date or fields.Date.context_today(self),
             summary=_('Nhắc thanh toán hóa đơn'),
-            note=note
+            note=note,
         )
 
     def _get_default_price(self, key, default=0.0):
-        value = self.env['ir.config_parameter'].sudo().get_param(
-            key, default
-        )
+        value = self.env['ir.config_parameter'].sudo().get_param(key, default)
         try:
             return float(value)
         except (TypeError, ValueError):
@@ -603,10 +671,12 @@ class RoomInvoice(models.Model):
 
     def _get_default_utilities_amount(self):
         return (
-            self._get_default_price('room_rental_expense.default_wifi_price') +
-            self._get_default_price('room_rental_expense.default_trash_fee') +
-            self._get_default_price('room_rental_expense.default_parking_fee') +
-            self._get_default_price(
+            self._get_default_price('room_rental_expense.default_wifi_price')
+            + self._get_default_price('room_rental_expense.default_trash_fee')
+            + self._get_default_price(
+                'room_rental_expense.default_parking_fee'
+            )
+            + self._get_default_price(
                 'room_rental_expense.default_other_utilities_price'
             )
         )

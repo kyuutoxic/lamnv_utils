@@ -25,7 +25,6 @@ __pycache__/
 # Development files  
 # ================================
 # Testing and debugging
-test_*.py
 debug_*.py
 
 # Temporary files

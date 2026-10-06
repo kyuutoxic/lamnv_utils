@@ -21,6 +21,13 @@
 - Không đưa mật khẩu, bot token hoặc secret thật vào tài liệu.
 - Không kết thúc task ở trạng thái code đã đổi nhưng context chưa đồng bộ.
 
+## Quy tắc viết Python
+
+- Tuân thủ PEP 8 khi tạo hoặc sửa file Python của project, bao gồm tests và migrations.
+- Mỗi dòng Python tối đa 79 ký tự, tính cả khoảng trắng thụt đầu dòng. Comment và docstring dạng văn bản tối đa 72 ký tự theo PEP 8.
+- Ngắt dòng dài bằng dấu ngoặc `()`, `[]`, `{}` và nối chuỗi liền kề khi cần; ưu tiên cách này thay cho ký tự nối dòng `\`.
+- Trước khi bàn giao, kiểm tra độ dài các dòng Python đã thêm hoặc sửa; không dùng `noqa` hoặc tăng giới hạn formatter/linter để bỏ qua quy tắc này.
+
 ## Quy trình mỗi task
 
 1. Xác định module, hành vi cần sửa và phạm vi người dùng đã yêu cầu; kiểm tra Git status để nhận diện thay đổi đang có.

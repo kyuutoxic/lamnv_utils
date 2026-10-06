@@ -5,7 +5,6 @@ from urllib import error, request as urlrequest
 from odoo import http
 from odoo.http import request
 
-
 _logger = logging.getLogger(__name__)
 
 
@@ -25,22 +24,41 @@ class RoomRentalTelegramWebhook(http.Controller):
         configured_secret = icp.get_param(
             'room_rental_expense.telegram_webhook_secret'
         )
-        provided_secret = (
-            request.httprequest.headers.get('X-Telegram-Bot-Api-Secret-Token')
-            or kwargs.get('secret')
-        )
-        if configured_secret and provided_secret != configured_secret:
+        provided_secret = request.httprequest.headers.get(
+            'X-Telegram-Bot-Api-Secret-Token'
+        ) or kwargs.get('secret')
+        if not configured_secret or provided_secret != configured_secret:
             _logger.warning('Rejected Telegram webhook with invalid secret.')
             return request.make_json_response(
                 {'ok': False, 'error': 'invalid_secret'},
                 status=403,
             )
 
-        message = payload.get('message') or payload.get('edited_message') or {}
+        if not icp.get_param(
+            'room_rental_expense.telegram_allowed_chat_ids', ''
+        ).strip():
+            return request.make_json_response(
+                {'ok': False, 'error': 'allowed_chats_not_configured'},
+                status=403,
+            )
+        if not isinstance(payload, dict):
+            return request.make_json_response(
+                {'ok': False, 'error': 'invalid_update'}, status=400
+            )
+        message = payload.get('message') or {}
         if not message:
             return request.make_json_response({'ok': True, 'ignored': True})
 
-        result = env['meter.reading'].sudo().process_telegram_message(message)
+        update_id = payload.get('update_id')
+        if (
+            not isinstance(message, dict)
+            or type(update_id) is not int
+            or update_id < 0
+        ):
+            return request.make_json_response(
+                {'ok': False, 'error': 'invalid_update'}, status=400
+            )
+        result = env['room.telegram.update'].sudo()._process_update(payload)
         self._send_telegram_reply(
             token=icp.get_param('room_rental_expense.telegram_bot_token'),
             chat_id=message.get('chat', {}).get('id'),
@@ -52,10 +70,12 @@ class RoomRentalTelegramWebhook(http.Controller):
         if not token or not chat_id or not text:
             return
         endpoint = f'https://api.telegram.org/bot{token}/sendMessage'
-        payload = json.dumps({
-            'chat_id': chat_id,
-            'text': text,
-        }).encode('utf-8')
+        payload = json.dumps(
+            {
+                'chat_id': chat_id,
+                'text': text,
+            }
+        ).encode('utf-8')
         req = urlrequest.Request(
             endpoint,
             data=payload,
