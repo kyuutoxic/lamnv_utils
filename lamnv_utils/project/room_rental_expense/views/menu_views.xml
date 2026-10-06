@@ -2,7 +2,7 @@
 <odoo>
     <data>
         <!-- Main Menu -->
-        <menuitem id="room_rental_menu" name="Quản Lý Phòng Trọ" web_icon="room_rental_expense,static/description/icon.png"/>
+        <menuitem id="room_rental_menu" name="Quản Lý Phòng Trọ" web_icon="room_rental_expense,static/description/room_icon.png"/>
 
         <!-- Submenu: Quản Lý -->
         <menuitem id="room_rental_manage_menu" name="Quản Lý" parent="room_rental_menu" sequence="10"/>
