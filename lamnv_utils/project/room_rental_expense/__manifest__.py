@@ -18,7 +18,14 @@
         - Dashboard tổng hợp
     """,
     'author': 'lamnv',
-    'depends': ['base', 'web', 'mail'],
+    'depends': [
+        'base',
+        'web',
+        'mail',
+        'web_responsive',
+        'web_tree_many2one_clickable',
+        'web_group_expand',
+    ],
     'data': [
         # ================ SECURITY ================
         'security/ir.model.access.csv',

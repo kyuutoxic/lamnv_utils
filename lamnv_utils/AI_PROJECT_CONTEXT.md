@@ -4,6 +4,38 @@
 >
 > Đây là mô tả code đang có, không phải cam kết mọi flow đã chạy thành công. Chưa chạy Odoo/database trong lần tổng hợp này. Khi sửa code, kiểm tra lại file nguồn vì tài liệu là snapshot. Không chứa mật khẩu, bot token hay webhook secret thật.
 
+## Đọc theo task
+
+Đọc `AGENTS.md` ở gốc và phần 1 trước. Khi sửa addon, đọc thêm `project/room_rental_expense/AGENTS.md`. Sau đó dùng bảng này để đọc có chọn lọc; không cần nạp toàn bộ source OCA cho mỗi task.
+
+| Task | Phần context cần đọc | Source cần mở trước |
+| --- | --- | --- |
+| Onboarding / hỏi tổng quan | 1–4, 12 | Manifest, models/__init__.py; mở model cụ thể khi cần xác minh |
+| Phòng, chủ phòng, tổng tài chính, lịch sử | 4, 6, 12 | models/rental_room.py, models/room_history.py, views/rental_room_views.xml |
+| Chỉ số điện/nước, thay công tơ, khóa reading | 5, phần liên kết ở 6, 12, 13 | models/meter_reading.py, models/room_invoice.py, views/meter_reading_views.xml |
+| Giá, thành phần tiền, hóa đơn | 4, 6, 8, 10, 12, 13 | models/room_config.py, models/room_invoice.py, models/rental_room.py, invoice view/report |
+| Thanh toán, state, reminder | Bảng trạng thái ở 6, 7 nếu có Telegram, 9–10, 12–13 | room_invoice actions/_auto_update_status/cron, meter_reading payment handlers, cron_data.xml |
+| Telegram, lệnh, response, settings | 5–7, 10, 12–13 | controllers/telegram_webhook.py, models/meter_reading.py, models/res_config_settings.py |
+| Giao diện, menu, format số, PDF | 8, 11 nếu liên quan OCA, 13 | views/XML hoặc reports/XML hoặc static/src/js/currency_widget.js và model cung cấp dữ liệu |
+| Chi phí, cọc, sự cố | 4, 8, 12–13 | model và view tương ứng; rental_room totals nếu liên quan chi phí |
+| Deploy, cấu hình, bảo mật | 3, 7, 9–10, 12–13 | Manifest, ACL, controller, config đã che secrets, defaults/cron |
+| Thêm feature / review / refactor | 2–4, phần nghiệp vụ tương ứng, 12–14 | File trực tiếp, caller và dependency liên quan; không chỉ đọc diff |
+
+Đường dẫn source trong bảng tương đối với `project/room_rental_expense/`. Số phần khớp mục lục bên dưới. Bảng này chỉ là điểm bắt đầu; nếu source gọi sang phần khác thì đọc thêm phần đó trước khi sửa.
+
+### Vai trò của từng file hướng dẫn
+
+```text
+AGENTS.md                              quy tắc chung + quy trình lấy ngữ cảnh
+AI_PROJECT_CONTEXT.md                  kiến trúc/nghiệp vụ/flow + bảng điều hướng
+project/room_rental_expense/AGENTS.md    quy tắc riêng của addon Odoo
+source + tests                         behavior thực tế + bằng chứng kiểm chứng
+```
+
+Chỉ dẫn riêng của module không lặp lại mô tả nghiệp vụ. Không có cấu trúc file nào bảo đảm AI luôn hiểu đúng: mỗi task vẫn phải đọc source liên quan, đối chiếu context và kiểm chứng. Quy trình này giảm việc bỏ sót ngữ cảnh và giảm tài liệu trùng lặp.
+
+Quy ước thư mục và đặt tên source của addon dựa trên [Odoo 19 coding guidelines](https://www.odoo.com/documentation/19.0/contributing/development/coding_guidelines.html). Cách tổ chức ba file hướng dẫn ở đây là lựa chọn cho workspace này, không phải yêu cầu bắt buộc của Odoo.
+
 ## Mục lục
 
 1. [Nắm project trong 2 phút](#1-nắm-project-trong-2-phút)
@@ -59,12 +91,11 @@ Những điểm AI cần giữ đúng:
 
 ```text
 lamnv_utils/
-├── AGENTS.md                         quy tắc đọc ngữ cảnh và đồng bộ docs
+├── AGENTS.md                         quy tắc chung và thứ tự đọc theo task
 ├── AI_PROJECT_CONTEXT.md             file onboarding độc lập này
-├── .ai-devkit.json                   metadata AI DevKit 0.22.0
-├── .codex/commands/*.md              workflow prompt cho phát triển/review/test
 ├── config/local.conf                cấu hình instance local; có dữ liệu bí mật
 ├── project/room_rental_expense/
+│   ├── AGENTS.md                     chỉ dẫn riêng của addon Odoo
 │   ├── __manifest__.py, __init__.py
 │   ├── models/                       8 model nghiệp vụ + settings extension
 │   ├── controllers/telegram_webhook.py
@@ -428,6 +459,8 @@ Không tự chạy cài/upgrade trên DB thật để đọc tài liệu. Khi de
 
 Thư mục gốc OCA: `addons_oca/addons_oca/web`. Có manifest, pyproject, docs/readme, bản dịch, ảnh, tests và cấu hình lint riêng. License từng addon có LGPL-3 hoặc AGPL-3, không áp license custom module cho cả bộ.
 
+Bộ OCA được quản lý bằng Git submodule từ `https://github.com/OCA/web.git`, ghim commit `3ad4c97ee29eda9f6278acba4cba09243e064a22` trong lần thiết lập này. `.gitmodules` nằm ở gốc Git repository (thư mục cha của workspace). Sau khi clone repository, chạy `git submodule update --init --recursive -- lamnv_utils/addons_oca/addons_oca/web` từ gốc repository để lấy OCA; khi đổi phiên bản OCA, commit cả con trỏ submodule mới và cập nhật context. Không cần commit thư mục `.git` hoặc cache Python của OCA. Repository còn có gitlink `odoo` tồn tại từ trước nhưng thiếu mapping trong `.gitmodules`; lệnh submodule toàn repo có thể lỗi, nên dùng đường dẫn OCA cụ thể. Runtime Odoo cần được chuẩn bị riêng; chưa có đủ dữ liệu để khôi phục mapping đó.
+
 | Addon | Vai trò / điểm vào chính |
 | --- | --- |
 | **`web_responsive`** | Dependency trực tiếp. Models res.users/ir.http đưa search type/theme vào session; components apps_menu/apps_menu_tools resolve web_icon; canonical/Fuse/command_palette search; responsive layout, chatter/file viewer/control panel/form; tests Python và QUnit |
@@ -513,16 +546,19 @@ Smoke flow: tạo phòng có default_rent + config → reading hai kỳ → tạ
 - Thay behavior thì cập nhật các phần tương ứng trong `AI_PROJECT_CONTEXT.md` trước khi kết thúc.
 - Đổi lệnh/action/settings/integration/response format thì tài liệu phải phản ánh đúng behavior mới.
 
+`project/room_rental_expense/AGENTS.md` bổ sung chỉ dẫn đặt code, giữ interface/import/manifest, đọc các điểm liên kết và kiểm chứng Odoo. Quy tắc chỉ nằm trong các AGENTS; mô tả kiến trúc/behavior vẫn nằm trong file context này. Khi đổi trách nhiệm hoặc đường dẫn source, cập nhật cả bảng **Đọc theo task** và bản đồ sửa code ở phần 13.
+
 File context này là tài liệu tổng hợp duy nhất của project; không thay thế source. Không tạo lại cây tài liệu theo phase/module. Sau thay behavior, đồng bộ phần tương ứng ở file này để lần AI đọc sau không dùng snapshot lỗi thời. Không chép secrets từ local.conf/system parameters/log vào context.
 
-Phân biệt mô tả hiện có và đề xuất: mục tiêu/checklist/hạng mục tương lai chưa phải behavior đã triển khai; kiểm tra source trước khi nói một tính năng đã tồn tại. `.ai-devkit.json` và `.codex/commands` phục vụ workflow AI, không tham gia runtime Odoo.
+Phân biệt mô tả hiện có và đề xuất: mục tiêu/checklist/hạng mục tương lai chưa phải behavior đã triển khai; kiểm tra source trước khi nói một tính năng đã tồn tại. Hướng dẫn AI chỉ dùng các AGENTS và context này; bộ workflow/metadata AI DevKit cũ đã được bỏ để tránh thêm lớp hướng dẫn trùng lặp. Cache Python là file sinh tự động, không thuộc source cần lưu. Report đang dùng nằm trong `reports/`; thư mục `report/` rỗng không cần giữ.
 
 Prompt ngắn khi đưa file này cho AI:
 
 ```text
 Hãy đọc AI_PROJECT_CONTEXT.md để hiểu project lamnv_utils và addon Odoo 19
 room_rental_expense. Tài liệu mô tả snapshot source, các behavior và giới hạn
-hiện có. Trước khi sửa, đọc AGENTS.md, source và các phần context liên quan; ưu tiên
+hiện có. Trước khi sửa, đọc AGENTS.md ở gốc, AGENTS.md của module,
+bảng Đọc theo task, source và các phần context liên quan; ưu tiên
 source khi có khác biệt. Không giả định các mục checklist đã được triển khai
 hoặc test đã pass. Khi thay behavior, đồng bộ context này.
 

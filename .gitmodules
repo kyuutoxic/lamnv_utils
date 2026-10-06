@@ -1,0 +1,3 @@
+[submodule "lamnv_utils/addons_oca/addons_oca/web"]
+	path = lamnv_utils/addons_oca/addons_oca/web
+	url = https://github.com/OCA/web.git
