@@ -105,14 +105,13 @@ class RoomTelegramSession(models.Model):
         session.expires_at = fields.Datetime.now() + timedelta(minutes=30)
         if text in ('Đổi kỳ hóa đơn', 'Sửa ngày chỉ số'):
             session.write({'step': 'change_invoice', 'values': {}})
+            domain = [('status', '!=', 'canceled')]
+            if text == 'Sửa ngày chỉ số':
+                domain.append(('meter_reading_id', '!=', False))
             invoices = self.env['room.invoice'].search(
-                [
-                    ('status', '!=', 'canceled'),
-                ],
+                domain,
                 limit=20,
             )
-            if text == 'Sửa ngày chỉ số':
-                invoices = invoices.filtered('meter_reading_id')
             choices = {
                 f'{inv.invoice_number} | {inv.room_id.name} | '
                 f'{inv.invoice_month}': inv.invoice_number
@@ -124,11 +123,11 @@ class RoomTelegramSession(models.Model):
             }
             if not choices:
                 return self._reply(
-                    'Không có hóa đơn để đổi kỳ. '
-                    'Hóa đơn đã hủy không được đổi kỳ.'
+                    f'Không có hóa đơn phù hợp cho {text}. '
+                    'Hóa đơn đã hủy không được chọn.'
                 )
             return self._reply(
-                'Hóa đơn có thể đổi kỳ (tối đa 20 hóa đơn mới nhất):\n'
+                f'{text} (tối đa 20 hóa đơn phù hợp mới nhất):\n'
                 + '\n'.join(choices)
                 + '\nBấm nút hóa đơn bên dưới hoặc nhập số hóa đơn.',
                 [[label] for label in choices] + [['Hủy']],
@@ -216,13 +215,16 @@ class RoomTelegramSession(models.Model):
                 if not text or len(text) > 500:
                     raise ValidationError('Lý do phải có 1–500 ký tự.')
                 values['reason'] = text
+                note = reading._get_corrected_date_notes(
+                    fields.Date.to_date(values['date'])
+                )
                 self.write({'step': 'confirm_date', 'values': values})
                 return self._reply(
                     f'Ngày đo: {values["old_date"]} → {values["date"]}.\n'
                     f'Lý do: {text}\n'
                     'Giữ nguyên chỉ số, tiêu thụ và tiền hóa đơn. '
                     'Thứ tự lịch sử và số cũ gợi ý cho lần mới sẽ đổi. '
-                    'Xác nhận?',
+                    'Xác nhận?' + ('\n' + note if note else ''),
                     [['Xác nhận', 'Hủy']],
                 )
             if text != 'Xác nhận':

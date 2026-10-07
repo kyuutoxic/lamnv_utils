@@ -45,6 +45,13 @@ class MeterReadingAnomaly(models.Model):
                 reading.anomaly_warning = False
                 continue
             duration = (reading.reading_date - history[0].reading_date).days
+            if duration < 7:
+                reading.anomaly_warning = (
+                    f'Hai lần ghi chỉ cách {duration} ngày; chưa đủ '
+                    '7 ngày để so sánh mức tiêu thụ theo ngày. '
+                    'Nếu nhập muộn, hãy dùng ngày đo thực tế.'
+                )
+                continue
             for counter, label in (('electric', 'Điện'), ('water', 'Nước')):
                 if (
                     reading[f'{counter}_meter_replaced']
@@ -57,14 +64,23 @@ class MeterReadingAnomaly(models.Model):
                         item.reading_date - history[index + 1].reading_date
                     ).days
                     if (
-                        days > 0
+                        days >= 7
                         and not item[f'{counter}_meter_replaced']
                         and not item[f'{counter}_usage_manual_override']
+                        and item[f'{counter}_previous']
+                        == history[index + 1][f'{counter}_current']
                     ):
-                        rates.append(item[f'{counter}_usage'] / days)
+                        rates.append((item[f'{counter}_usage'], days))
                 if len(rates) < 2:
                     continue
-                baseline = sum(rates) / len(rates)
+                baseline = sum(usage for usage, _ in rates) / sum(
+                    days for _, days in rates
+                )
+                if (
+                    reading[f'{counter}_previous']
+                    != history[0][f'{counter}_current']
+                ):
+                    continue
                 daily = reading[f'{counter}_usage'] / duration
                 if baseline > 0 and daily > baseline * (1 + threshold / 100):
                     increase = (daily / baseline - 1) * 100

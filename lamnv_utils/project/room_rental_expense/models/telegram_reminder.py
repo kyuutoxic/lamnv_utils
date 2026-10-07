@@ -1,3 +1,4 @@
+import hashlib
 import json
 import logging
 from datetime import timedelta
@@ -16,6 +17,7 @@ class RoomTelegramReminder(models.Model):
         'room.invoice', required=True, ondelete='cascade'
     )
     chat_id = fields.Char(required=True)
+    bot_key = fields.Char(required=True, default='legacy')
     due_date = fields.Date(required=True)
     kind = fields.Selection(
         [('upcoming', 'Sắp đến hạn'), ('overdue', 'Quá hạn')], required=True
@@ -25,7 +27,8 @@ class RoomTelegramReminder(models.Model):
         default='pending',
     )
     _delivery_unique = models.Constraint(
-        'unique(invoice_id, chat_id, due_date, kind)', 'Nhắc hạn đã tồn tại.'
+        'unique(bot_key, invoice_id, chat_id, due_date, kind)',
+        'Nhắc hạn đã tồn tại.',
     )
 
     @api.model
@@ -46,6 +49,7 @@ class RoomTelegramReminder(models.Model):
         }
         if not token or not chats:
             return
+        bot_key = hashlib.sha256(token.encode()).hexdigest()
         self.env.cr.execute(
             'SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))',
             ['room.telegram.reminders'],
@@ -69,6 +73,7 @@ class RoomTelegramReminder(models.Model):
             kind = 'overdue' if invoice.due_date < today else 'upcoming'
             for chat in chats:
                 domain = [
+                    ('bot_key', '=', bot_key),
                     ('invoice_id', '=', invoice.id),
                     ('chat_id', '=', chat),
                     ('due_date', '=', invoice.due_date),
@@ -77,13 +82,19 @@ class RoomTelegramReminder(models.Model):
                 if not self.search_count(domain):
                     self.create(
                         dict(
+                            bot_key=bot_key,
                             invoice_id=invoice.id,
                             chat_id=chat,
                             due_date=invoice.due_date,
                             kind=kind,
                         )
                     )
-        for delivery in self.search([('state', '=', 'pending')]):
+        for delivery in self.search(
+            [
+                ('state', '=', 'pending'),
+                ('bot_key', '=', bot_key),
+            ]
+        ):
             invoice = delivery.invoice_id
             current_kind = (
                 'overdue' if delivery.due_date < today else 'upcoming'

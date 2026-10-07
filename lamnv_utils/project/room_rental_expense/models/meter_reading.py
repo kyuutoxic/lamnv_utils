@@ -459,6 +459,72 @@ class MeterReading(models.Model):
             f'Sửa ngày ghi chỉ số: {old} → {date}. Lý do: {reason}'
         ))
 
+    def _get_corrected_date_notes(self, date):
+        self.ensure_one()
+        base = [('room_id', '=', self.room_id.id), ('id', '!=', self.id)]
+        previous = self.search(
+            base + [('reading_date', '<', date)],
+            order='reading_date desc, id desc', limit=1,
+        )
+        following = self.search(
+            base + [('reading_date', '>', date)],
+            order='reading_date asc, id asc', limit=1,
+        )
+        notes = []
+        for counter, label in (('electric', 'điện'), ('water', 'nước')):
+            if not self[f'{counter}_meter_replaced']:
+                if previous and (
+                    self[f'{counter}_current']
+                    < previous[f'{counter}_current']
+                ):
+                    notes.append(
+                        f'Cảnh báo {label}: số hiện tại '
+                        f'{self[f"{counter}_current"]:g} nhỏ hơn bản '
+                        f'trước {previous.reading_date}: '
+                        f'{previous[f"{counter}_current"]:g}. '
+                        'Có thể lịch sử còn sai ngày; hãy đối chiếu '
+                        'trước lần ghi tiếp theo. Vẫn cho sửa ngày.'
+                    )
+                if (
+                    previous
+                    and not self[f'{counter}_usage_manual_override']
+                    and self[f'{counter}_previous']
+                    != previous[f'{counter}_current']
+                ):
+                    notes.append(
+                        f'Lưu ý {label}: số cũ đã lưu '
+                        f'{self[f"{counter}_previous"]:g} khác số của '
+                        f'bản trước {previous.reading_date}: '
+                        f'{previous[f"{counter}_current"]:g}. '
+                        'Giữ nguyên tiêu thụ đã chốt trên hóa đơn.'
+                    )
+            if following and not following[f'{counter}_meter_replaced']:
+                if (
+                    self[f'{counter}_current']
+                    > following[f'{counter}_current']
+                ):
+                    notes.append(
+                        f'Cảnh báo {label}: số hiện tại '
+                        f'{self[f"{counter}_current"]:g} lớn hơn bản '
+                        f'sau {following.reading_date}: '
+                        f'{following[f"{counter}_current"]:g}. '
+                        'Có thể lịch sử còn sai ngày; hãy đối chiếu '
+                        'trước lần ghi tiếp theo. Vẫn cho sửa ngày.'
+                    )
+                if (
+                    not following[f'{counter}_usage_manual_override']
+                    and following[f'{counter}_previous']
+                    != self[f'{counter}_current']
+                ):
+                    notes.append(
+                        f'Lưu ý {label}: số cũ của bản sau '
+                        f'{following.reading_date}: '
+                        f'{following[f"{counter}_previous"]:g} khác '
+                        f'số hiện tại {self[f"{counter}_current"]:g}. '
+                        'Không tính lại bản sau hoặc tiền đã chốt.'
+                    )
+        return '\n'.join(notes)
+
     def action_create_invoice(self):
         self.ensure_one()
         if self.invoice_id:

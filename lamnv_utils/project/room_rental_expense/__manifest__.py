@@ -1,6 +1,6 @@
 {
     'name': 'Room Rental Expense Management',
-    'version': '19.0.1.3.0',
+    'version': '19.0.1.3.1',
     'category': 'Accounting',
     'summary': 'Personal room rental expense and payment tracking',
     'description': """
