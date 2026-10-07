@@ -321,6 +321,253 @@ class TestTelegramFeatures(TransactionCase):
         self.send('Hủy')
         self.assertEqual(reading.reading_date, self.today)
 
+    def test_date_correction_warns_inconsistent_neighbors(self):
+        self.readings.create(
+            {
+                'room_id': self.room.id,
+                'reading_date': '2026-06-30',
+                'electric_previous': 100,
+                'electric_current': 200,
+                'water_previous': 10,
+                'water_current': 20,
+            }
+        )
+        reading = self.readings.create(
+            {
+                'room_id': self.room.id,
+                'reading_date': self.today,
+                'electric_previous': 200,
+                'electric_current': 300,
+                'water_previous': 20,
+                'water_current': 30,
+            }
+        )
+        inv = self.invoice(meter_reading_id=reading.id)
+        total = inv.total_amount
+        self.send('Sửa ngày chỉ số')
+        self.send(inv.invoice_number)
+        self.send('2026-05-31')
+        preview = self.send('Sửa ngày')
+        self.assertIn('Cảnh báo điện', preview['message'])
+        self.assertIn('Vẫn cho sửa ngày', preview['message'])
+        result = self.send('Xác nhận')
+        self.assertEqual(result['status'], 'success')
+        self.assertEqual(str(reading.reading_date), '2026-05-31')
+        self.assertEqual(inv.total_amount, total)
+
+    def test_date_correction_is_independent_of_invoice_dates(self):
+        other = self.readings.create(
+            {
+                'room_id': self.room.id,
+                'reading_date': '2026-10-06',
+                'electric_current': 100,
+                'water_current': 10,
+            }
+        )
+        self.invoice(meter_reading_id=other.id, invoice_month='05/2026')
+        reading = self.readings.create(
+            {
+                'room_id': self.room.id,
+                'reading_date': self.today,
+                'electric_previous': 100,
+                'electric_current': 150,
+                'water_previous': 10,
+                'water_current': 15,
+            }
+        )
+        inv = self.invoice(
+            meter_reading_id=reading.id, invoice_month='07/2026'
+        )
+        invoice_date = inv.invoice_date
+        self.send('Sửa ngày chỉ số')
+        self.send(inv.invoice_number)
+        self.send('2026-07-30')
+        preview = self.send('Sửa lần lượt dữ liệu nhập muộn')
+        self.assertIn('2026-10-06', preview['message'])
+        self.assertEqual(self.send('Xác nhận')['status'], 'success')
+        self.assertEqual(str(reading.reading_date), '2026-07-30')
+        self.assertEqual(inv.invoice_date, invoice_date)
+        self.assertEqual(other.reading_date.isoformat(), '2026-10-06')
+
+    def test_date_menu_filters_before_limit(self):
+        reading = self.readings.create(
+            {
+                'room_id': self.room.id,
+                'reading_date': self.today,
+                'electric_current': 100,
+                'water_current': 10,
+            }
+        )
+        inv = self.invoice(meter_reading_id=reading.id)
+        for index in range(20):
+            self.env['room.invoice'].create(
+                {
+                    'room_id': self.room.id,
+                    'invoice_month': '12/2099',
+                    'invoice_date': '2099-12-01',
+                }
+            )
+        result = self.send('Sửa ngày chỉ số')
+        self.assertIn(inv.invoice_number, result['message'])
+        self.assertIn(inv.invoice_number, str(result['reply_markup']))
+
+    def test_date_correction_warns_previous_counter_mismatch(self):
+        self.readings.create(
+            {
+                'room_id': self.room.id,
+                'reading_date': '2026-05-01',
+                'electric_current': 100,
+                'water_current': 10,
+            }
+        )
+        reading = self.readings.create(
+            {
+                'room_id': self.room.id,
+                'reading_date': self.today,
+                'electric_previous': 100,
+                'electric_current': 150,
+                'water_previous': 9,
+                'water_current': 15,
+            }
+        )
+        inv = self.invoice(meter_reading_id=reading.id)
+        self.send('Sửa ngày chỉ số')
+        self.send(inv.invoice_number)
+        self.send('2026-05-31')
+        preview = self.send('Sửa ngày')
+        self.assertIn('Lưu ý nước', preview['message'])
+        result = self.send('Xác nhận')
+        self.assertEqual(result['status'], 'success')
+        self.assertEqual(str(reading.reading_date), '2026-05-31')
+        self.assertEqual(reading.water_previous, 9)
+        self.assertEqual(reading.water_usage, 6)
+
+    def test_latest_date_correction_keeps_settled_consumption(self):
+        self.readings.create(
+            {
+                'room_id': self.room.id,
+                'reading_date': '2026-06-07',
+                'electric_current': 100,
+                'water_current': 10,
+            }
+        )
+        reading = self.readings.create(
+            {
+                'room_id': self.room.id,
+                'reading_date': self.today,
+                'electric_previous': 90,
+                'electric_current': 150,
+                'water_previous': 9,
+                'water_current': 15,
+            }
+        )
+        inv = self.invoice(meter_reading_id=reading.id)
+        inv.action_paid()
+        total = inv.total_amount
+        self.send('Sửa ngày chỉ số')
+        self.send(inv.invoice_number)
+        self.send('2026-07-30')
+        preview = self.send('Nhập nhầm ngày')
+        self.assertIn('Lưu ý điện', preview['message'])
+        self.assertEqual(self.send('Xác nhận')['status'], 'success')
+        self.assertEqual(str(reading.reading_date), '2026-07-30')
+        self.assertEqual(reading.electric_usage, 60)
+        self.assertEqual(inv.total_amount, total)
+        self.assertEqual(inv.paid_amount, total)
+        self.assertEqual(inv.status, 'paid')
+
+    def test_reminders_are_separate_for_each_bot(self):
+        self.icp.set_param(
+            'room_rental_expense.telegram_reminders_enabled', 'True'
+        )
+        self.invoice(due_date=self.today)
+        reminders = self.env['room.telegram.reminder']
+        with patch.object(
+            type(reminders), '_send_reminder', return_value=True
+        ) as send:
+            reminders._run_reminders()
+            self.assertEqual(send.call_count, 1)
+            self.icp.set_param(
+                'room_rental_expense.telegram_bot_token', 'new-test-bot'
+            )
+            reminders._run_reminders()
+            reminders._run_reminders()
+            self.assertEqual(send.call_count, 2)
+        self.assertEqual(len(set(reminders.search([]).mapped('bot_key'))), 2)
+
+    def test_short_interval_does_not_show_percentage(self):
+        for index in range(4):
+            self.readings.create(
+                {
+                    'room_id': self.room.id,
+                    'reading_date': self.today
+                    - timedelta(days=91 - index * 30),
+                    'electric_previous': index * 30,
+                    'electric_current': (index + 1) * 30,
+                    'water_previous': index * 3,
+                    'water_current': (index + 1) * 3,
+                }
+            )
+        current = self.readings.create(
+            {
+                'room_id': self.room.id,
+                'reading_date': self.today,
+                'electric_previous': 120,
+                'electric_current': 300,
+                'water_previous': 12,
+                'water_current': 100,
+            }
+        )
+        self.assertIn('chưa đủ 7 ngày', current.anomaly_warning)
+        self.assertNotIn('%', current.anomaly_warning)
+
+    def test_old_pending_reminder_is_not_sent_by_new_bot(self):
+        self.icp.set_param(
+            'room_rental_expense.telegram_reminders_enabled', 'True'
+        )
+        self.invoice(due_date=self.today)
+        reminders = self.env['room.telegram.reminder']
+        with patch.object(
+            type(reminders), '_send_reminder', return_value=False
+        ):
+            reminders._run_reminders()
+        old = reminders.search([])
+        self.icp.set_param(
+            'room_rental_expense.telegram_bot_token', 'another-test-bot'
+        )
+        with patch.object(
+            type(reminders), '_send_reminder', return_value=True
+        ) as send:
+            reminders._run_reminders()
+            self.assertEqual(send.call_count, 1)
+        self.assertEqual(old.state, 'pending')
+        self.assertEqual(reminders.search_count([('state', '=', 'sent')]), 1)
+
+    def test_anomaly_ignores_broken_counter_chain(self):
+        for index in range(4):
+            self.readings.create(
+                {
+                    'room_id': self.room.id,
+                    'reading_date': self.today
+                    - timedelta(days=120 - index * 30),
+                    'electric_previous': index * 30,
+                    'electric_current': (index + 1) * 30,
+                    'water_previous': index * 3,
+                    'water_current': (index + 1) * 3,
+                }
+            )
+        current = self.readings.create(
+            {
+                'room_id': self.room.id,
+                'reading_date': self.today,
+                'electric_previous': 0,
+                'electric_current': 300,
+                'water_previous': 0,
+                'water_current': 100,
+            }
+        )
+        self.assertFalse(current.anomaly_warning)
+
     def test_session_user_isolation_and_unauthorized(self):
         self.start_reading()
         self.send('/menu', user=456)
