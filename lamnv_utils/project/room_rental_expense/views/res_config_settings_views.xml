@@ -55,6 +55,19 @@
                             </details>
                         </setting>
                     </block>
+                    <block title="Nhắc hạn và cảnh báo" id="room_rental_telegram_reminders">
+                        <setting string="Nhắc hạn qua Telegram" help="Một lần trước hạn, một lần quá hạn cho mỗi hóa đơn/chat. Cần bật scheduler Odoo (max_cron_threads ít nhất 1).">
+                            <field name="telegram_reminders_enabled"/>
+                            <div class="content-group mt16" invisible="not telegram_reminders_enabled">
+                                <label for="reminder_days" string="Nhắc trước hạn (ngày)"/>
+                                <field name="reminder_days"/>
+                            </div>
+                        </setting>
+                        <setting string="Cảnh báo điện/nước bất thường" help="So sánh mức dùng theo ngày với tối đa 3 kỳ trước, cần ít nhất 2 kỳ hợp lệ. Không so sánh kỳ thay công tơ hoặc nhập tay.">
+                            <label for="usage_alert_percent" string="Ngưỡng tăng (%)"/>
+                            <field name="usage_alert_percent"/>
+                        </setting>
+                    </block>
                 </app>
             </xpath>
         </field>

@@ -6,8 +6,8 @@ from datetime import timedelta
 from urllib import error, request as urlrequest
 from urllib.parse import urlsplit
 
-from odoo import _, fields, models
-from odoo.exceptions import UserError
+from odoo import _, api, fields, models
+from odoo.exceptions import UserError, ValidationError
 
 
 class ResConfigSettings(models.TransientModel):
@@ -37,6 +37,31 @@ class ResConfigSettings(models.TransientModel):
     )
     telegram_pairing_command = fields.Char(readonly=True)
     telegram_connection_info = fields.Text(readonly=True)
+    telegram_reminders_enabled = fields.Boolean(
+        string='Nhắc hạn Telegram',
+        config_parameter='room_rental_expense.telegram_reminders_enabled',
+    )
+    reminder_days = fields.Integer(
+        string='Nhắc trước hạn (ngày)',
+        default=3,
+        config_parameter='room_rental_expense.reminder_days',
+    )
+    usage_alert_percent = fields.Float(
+        string='Ngưỡng tăng tiêu thụ (%)',
+        default=50,
+        config_parameter='room_rental_expense.usage_alert_percent',
+    )
+
+    @api.constrains('reminder_days', 'usage_alert_percent')
+    def _check_alert_settings(self):
+        for settings in self:
+            if settings.reminder_days < 0 or settings.usage_alert_percent <= 0:
+                raise ValidationError(
+                    _(
+                        'Ngày nhắc phải không âm; '
+                        'ngưỡng cảnh báo phải lớn hơn 0.'
+                    )
+                )
 
     def _check_telegram_admin(self):
         self.ensure_one()
@@ -270,6 +295,9 @@ class ResConfigSettings(models.TransientModel):
 
     def _get_telegram_commands_payload(self):
         return [
+            {'command': 'menu', 'description': 'Menu nhập từng bước'},
+            {'command': 'cancel', 'description': 'Hủy phiên nhập'},
+            {'command': 'summary', 'description': 'Tổng kết chi phí tháng'},
             {'command': 'connect', 'description': 'Ghép nối chat với Odoo'},
             {
                 'command': 'help',

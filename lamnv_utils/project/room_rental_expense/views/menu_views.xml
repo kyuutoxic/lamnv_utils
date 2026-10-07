@@ -26,6 +26,7 @@
 
         <!-- Submenu: Báo Cáo -->
         <menuitem id="room_rental_report_menu" name="Báo Cáo" parent="room_rental_menu" sequence="40"/>
+        <menuitem id="room_monthly_summary_menu" name="Tổng Kết Tháng" parent="room_rental_report_menu" action="action_room_monthly_summary" sequence="0"/>
 
         <record id="action_room_invoice_report" model="ir.actions.act_window">
             <field name="name">Báo Cáo Hóa Đơn</field>

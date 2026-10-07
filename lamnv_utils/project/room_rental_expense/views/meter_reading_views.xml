@@ -48,6 +48,9 @@
                                 invisible="not invoice_id"/>
                     </header>
                     <sheet>
+                        <div class="alert alert-warning" role="status" invisible="not anomaly_warning">
+                            <field name="anomaly_warning" readonly="1"/>
+                        </div>
                         <h1>
                             <field name="room_id" class="oe_inline" readonly="invoice_id"/>
                         </h1>

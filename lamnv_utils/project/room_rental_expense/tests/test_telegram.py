@@ -1,4 +1,5 @@
 import json
+from unittest.mock import MagicMock, patch
 
 from odoo import fields
 from odoo.exceptions import AccessError
@@ -186,3 +187,23 @@ class TestTelegramWebhook(HttpCase):
             ),
             '123',
         )
+
+    def test_menu_markup_delivered_through_webhook(self):
+        self.icp.set_param(
+            'room_rental_expense.telegram_bot_token', 'test-only'
+        )
+        payload = {
+            'update_id': 300,
+            'message': {
+                'chat': {'id': 123},
+                'from': {'id': 123},
+                'text': '/menu',
+            },
+        }
+        response = MagicMock()
+        with patch('urllib.request.urlopen', return_value=response) as call:
+            result = self.post(payload).json()
+        self.assertIn('reply_markup', result)
+        sent = json.loads(call.call_args.args[0].data)
+        self.assertTrue(sent['reply_markup']['resize_keyboard'])
+        self.assertIn('Ghi chỉ số', str(sent['reply_markup']['keyboard']))

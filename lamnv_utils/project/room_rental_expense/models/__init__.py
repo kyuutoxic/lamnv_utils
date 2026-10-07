@@ -8,3 +8,7 @@ from . import room_deposit
 from . import room_issue
 from . import res_config_settings
 from . import telegram_update
+from . import monthly_summary
+from . import telegram_reminder
+from . import meter_reading_anomaly
+from . import telegram_session

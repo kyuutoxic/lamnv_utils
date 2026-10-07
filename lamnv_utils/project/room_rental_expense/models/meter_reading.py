@@ -421,6 +421,44 @@ class MeterReading(models.Model):
                 )
         return super().write(vals)
 
+    def _correct_reading_date(self, date, expected_date, reason):
+        self.ensure_one()
+        reason = (reason or '').strip()
+        if not reason or len(reason) > 500:
+            raise ValidationError('Nhập lý do từ 1 đến 500 ký tự.')
+        date = fields.Date.to_date(date)
+        if not date or date > fields.Date.context_today(self):
+            raise ValidationError('Ngày thực tế không được ở tương lai.')
+        self.env.cr.execute(
+            'SELECT id FROM rental_room WHERE id = %s FOR UPDATE',
+            [self.room_id.id],
+        )
+        if not self.invoice_id:
+            raise ValidationError('Chỉ số không còn gắn với hóa đơn.')
+        invoice = self.invoice_id
+        invoice._lock_for_payment()
+        self.env.cr.execute(
+            'SELECT id FROM meter_reading WHERE id = %s FOR UPDATE',
+            [self.id],
+        )
+        self.invalidate_recordset(['reading_date', 'invoice_id'])
+        if (
+            self.reading_date != fields.Date.to_date(expected_date)
+            or self.invoice_id != invoice
+        ):
+            raise ValidationError('Bản ghi đã thay đổi. Chọn lại hóa đơn.')
+        if self.search_count([
+            ('room_id', '=', self.room_id.id),
+            ('reading_date', '=', date), ('id', '!=', self.id),
+        ]):
+            raise ValidationError('Phòng đã có chỉ số trong ngày này.')
+        old = self.reading_date
+        # Correct the date; preserve counters and invoiced usage.
+        super(MeterReading, self).write({'reading_date': date})
+        invoice.message_post(body=(
+            f'Sửa ngày ghi chỉ số: {old} → {date}. Lý do: {reason}'
+        ))
+
     def action_create_invoice(self):
         self.ensure_one()
         if self.invoice_id:
@@ -540,6 +578,10 @@ class MeterReading(models.Model):
                     return self.env['room.telegram.update']._pair_chat(
                         message
                     )
+                sessions = self.env['room.telegram.session'].sudo()
+                guided = sessions._handle_message(message)
+                if guided is not None:
+                    return guided
                 self._check_telegram_sender_allowed(
                     payload['telegram_chat_id']
                 )
@@ -555,6 +597,14 @@ class MeterReading(models.Model):
     def _dispatch_telegram_command(self, text, payload):
         normalized = text.strip()
         upper_text = normalized.upper()
+        if upper_text.startswith('/SUMMARY '):
+            parts = normalized.split()
+            if len(parts) not in (2, 3):
+                raise ValidationError('Dùng /summary MM/YYYY [mã_phòng].')
+            room = (self._find_room_by_telegram_key(parts[2])
+                    if len(parts) == 3 else None)
+            return {'status': 'success', 'message': self.env[
+                'room.monthly.summary']._build_summary(parts[1], room)}
         if not normalized.startswith('/'):
             return {
                 'status': 'error',
@@ -613,6 +663,9 @@ class MeterReading(models.Model):
         return '\n'.join(
             [
                 'Các lệnh hỗ trợ:',
+                '/menu - Menu nhập từng bước',
+                '/cancel - Hủy phiên nhập',
+                '/summary MM/YYYY [mã_phòng] - Tổng kết tháng',
                 '/help - Xem hướng dẫn',
                 '/reading P101 350 28',
                 '/reading P101 350 28 2026-04-14',
@@ -681,7 +734,11 @@ class MeterReading(models.Model):
 
     @api.model
     def _upsert_from_telegram_payload(self, payload):
-        room = self._find_room_by_telegram_key(payload['room_key'])
+        room = (self.env['rental.room'].browse(payload['room_id']).exists()
+                if payload.get('room_id') else
+                self._find_room_by_telegram_key(payload['room_key']))
+        if not room:
+            raise ValidationError('Không tìm thấy phòng.')
         reading_date = payload['reading_date']
         existing = self._find_telegram_existing_reading(room, reading_date)
         vals = {
@@ -700,8 +757,11 @@ class MeterReading(models.Model):
             )
             if existing.invoice_id:
                 raise ValidationError(
-                    'Chỉ số tháng này đã gắn với hóa đơn, không thể cập nhật '
-                    'qua Telegram.'
+                    f'Chỉ số ngày {existing.reading_date} đã gắn với '
+                    f'hóa đơn {existing.invoice_id.invoice_number}, kỳ '
+                    f'{existing.invoice_id.invoice_month}. Nếu là chỉ số '
+                    'cũ nhập muộn, dùng menu Sửa ngày chỉ số để sửa ngày '
+                    'đo thực tế trước khi ghi lần mới.'
                 )
             preview = existing.new(vals)
             regression_messages = preview._get_counter_regression_messages()
@@ -727,7 +787,8 @@ class MeterReading(models.Model):
             'message': self._build_telegram_success_message(
                 reading,
                 action=action,
-            ),
+            ) + ('\n' + reading.anomaly_warning
+                 if reading.anomaly_warning else ''),
         }
 
     @api.model
