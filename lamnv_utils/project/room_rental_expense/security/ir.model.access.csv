@@ -8,3 +8,6 @@ access_room_history_user,room.history user,model_room_history,base.group_user,1,
 access_room_deposit_user,room.deposit user,model_room_deposit,base.group_user,1,1,1,1
 access_room_issue_user,room.issue user,model_room_issue,base.group_user,1,1,1,1
 access_room_telegram_update_admin,room.telegram.update admin read,model_room_telegram_update,base.group_system,1,0,0,0
+access_room_monthly_summary_user,room.monthly.summary user,model_room_monthly_summary,base.group_user,1,1,1,1
+access_room_telegram_session_admin,room.telegram.session admin read,model_room_telegram_session,base.group_system,1,0,0,0
+access_room_telegram_reminder_admin,room.telegram.reminder admin read,model_room_telegram_reminder,base.group_system,1,0,0,0

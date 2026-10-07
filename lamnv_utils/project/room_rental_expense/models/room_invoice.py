@@ -331,6 +331,50 @@ class RoomInvoice(models.Model):
             invoice.paid_amount = invoice.total_amount
         self._auto_update_status()
 
+    def _check_available_period(self, month, room):
+        date = self._parse_month_to_date(month)
+        if not date:
+            raise ValidationError('Kỳ phải có định dạng MM/YYYY.')
+        month = date.strftime('%m/%Y')
+        self.env.cr.execute(
+            'SELECT id FROM rental_room WHERE id = %s FOR UPDATE',
+            [room.id],
+        )
+        other = self.search(
+            [
+                ('room_id', '=', room.id),
+                ('invoice_month', '=', month),
+                ('status', '!=', 'canceled'),
+                ('id', 'not in', self.ids),
+            ],
+            limit=1,
+        )
+        if other:
+            raise ValidationError(
+                f'Phòng đã có hóa đơn {other.invoice_number} kỳ {month}. '
+                'Hãy kiểm tra hóa đơn đó trước.'
+            )
+        return month
+
+    def _change_billing_period(self, month, expected_month, reason):
+        self.ensure_one()
+        reason = (reason or '').strip()
+        if not reason or len(reason) > 500:
+            raise ValidationError('Nhập lý do sửa kỳ từ 1 đến 500 ký tự.')
+        month = self._check_available_period(month, self.room_id)
+        self._lock_for_payment()
+        self.invalidate_recordset(['invoice_month'])
+        if self.invoice_month != expected_month:
+            raise ValidationError('Kỳ đã thay đổi. Chọn lại hóa đơn.')
+        if month == self.invoice_month:
+            return
+        old = self.invoice_month
+        # Keep the agreed amounts and dates when correcting the period.
+        super(RoomInvoice, self).write({'invoice_month': month})
+        self.message_post(
+            body=f'Đổi kỳ hóa đơn: {old} → {month}. Lý do: {reason}'
+        )
+
     def _lock_for_payment(self):
         """Serialize payment commands and refresh values after
         acquiring locks.
@@ -397,15 +441,6 @@ class RoomInvoice(models.Model):
                 raise ValidationError(
                     _('Chỉ số công tơ này đã được gắn với hóa đơn %s.')
                     % invoice.meter_reading_id.invoice_id.display_name
-                )
-            if (
-                invoice.meter_reading_id
-                and invoice.invoice_month
-                and invoice.meter_reading_id.reading_month
-                != invoice.invoice_month
-            ):
-                raise ValidationError(
-                    _('Chỉ số công tơ phải thuộc cùng tháng với hóa đơn.')
                 )
 
     @api.constrains('invoice_date', 'due_date')
@@ -640,6 +675,7 @@ class RoomInvoice(models.Model):
         )
         for invoice in upcoming:
             invoice._schedule_reminder_activity()
+        self.env['room.telegram.reminder'].sudo()._run_reminders()
 
     def _schedule_reminder_activity(self):
         self.ensure_one()
@@ -656,7 +692,7 @@ class RoomInvoice(models.Model):
             self.remaining_amount,
         )
         self.activity_schedule(
-            activity_type.id,
+            activity_type_id=activity_type.id,
             date_deadline=self.due_date or fields.Date.context_today(self),
             summary=_('Nhắc thanh toán hóa đơn'),
             note=note,

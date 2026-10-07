@@ -70,19 +70,18 @@ class RoomRentalTelegramWebhook(http.Controller):
             token=icp.get_param('room_rental_expense.telegram_bot_token'),
             chat_id=message.get('chat', {}).get('id'),
             text=result.get('message'),
+            reply_markup=result.get('reply_markup'),
         )
         return request.make_json_response(result, status=200)
 
-    def _send_telegram_reply(self, token, chat_id, text):
+    def _send_telegram_reply(self, token, chat_id, text, reply_markup=None):
         if not token or not chat_id or not text:
             return
         endpoint = f'https://api.telegram.org/bot{token}/sendMessage'
-        payload = json.dumps(
-            {
-                'chat_id': chat_id,
-                'text': text,
-            }
-        ).encode('utf-8')
+        data = {'chat_id': chat_id, 'text': text}
+        if reply_markup:
+            data['reply_markup'] = reply_markup
+        payload = json.dumps(data).encode('utf-8')
         req = urlrequest.Request(
             endpoint,
             data=payload,
