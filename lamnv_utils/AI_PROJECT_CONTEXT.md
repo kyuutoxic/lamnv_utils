@@ -15,7 +15,7 @@
 | Chỉ số điện/nước, thay công tơ, khóa reading | 5, phần liên kết ở 6, 12, 13 | models/meter_reading.py, models/room_invoice.py, views/meter_reading_views.xml |
 | Giá, thành phần tiền, hóa đơn | 4, 6, 8, 10, 12, 13 | models/room_config.py, models/room_invoice.py, models/rental_room.py, invoice view/report |
 | Thanh toán, state, reminder | Bảng trạng thái ở 6, 7 nếu có Telegram, 9–10, 12–13 | room_invoice actions/_auto_update_status/cron, meter_reading payment handlers, cron_data.xml |
-| Telegram, lệnh, response, settings | 5–7, 10, 12–13 | controllers/telegram_webhook.py, models/meter_reading.py, models/res_config_settings.py |
+| Telegram, lệnh, response, settings | 5–7, 10, 12–13 | controllers/telegram_webhook.py, models/meter_reading.py, models/telegram_update.py, models/res_config_settings.py |
 | Giao diện, menu, format số, PDF | 8, 11 nếu liên quan OCA, 13 | views/XML hoặc reports/XML hoặc static/src/js/currency_widget.js và model cung cấp dữ liệu |
 | Chi phí, cọc, sự cố | 4, 8, 12–13 | model và view tương ứng; rental_room totals nếu liên quan chi phí |
 | Deploy, cấu hình, bảo mật | 3, 7, 9–10, 12–13 | Manifest, ACL, controller, config đã che secrets, defaults/cron |
@@ -55,7 +55,7 @@ Quy ước thư mục và đặt tên source của addon dựa trên [Odoo 19 co
 
 ## 1. Nắm project trong 2 phút
 
-`lamnv_utils` là workspace custom addon cho **Odoo 19**, hiện có một addon nghiệp vụ tự viết: **`project/room_rental_expense`**, version manifest `19.0.1.1.0`, author `lamnv`, license `LGPL-3`, application bật, auto-install tắt.
+`lamnv_utils` là workspace custom addon cho **Odoo 19**, hiện có một addon nghiệp vụ tự viết: **`project/room_rental_expense`**, version manifest `19.0.1.2.0`, author `lamnv`, license `LGPL-3`, application bật, auto-install tắt.
 
 Mục đích là **theo dõi chi phí thuê phòng trọ cá nhân**: phòng và chủ phòng, điện nước, tiền thuê, hóa đơn, thanh toán, chi phí phát sinh, tiền cọc, sự cố, lịch sử ở. Telegram giúp nhập nhanh chỉ số và thao tác hóa đơn từ điện thoại. Tên “invoice” ở đây là hóa đơn custom của ứng dụng; không có tích hợp `account.move`, sổ kế toán hoặc cổng thanh toán.
 
@@ -300,7 +300,7 @@ Validation ngày: due_date không trước invoice_date (bằng nhau được ph
 
 1. Đọc JSON bằng `get_json(silent=True) or {}`; dùng parameter sudo.
 2. Lấy secret từ header `X-Telegram-Bot-Api-Secret-Token`, fallback `kwargs.get('secret')` (query/form parameter của route). Không đọc `payload['secret']` từ JSON để xác thực.
-3. Secret chưa cấu hình hoặc không khớp đều trả HTTP 403: `{"ok":false,"error":"invalid_secret"}`. Allowlist chưa cấu hình trả 403 `allowed_chats_not_configured`.
+3. Secret chưa cấu hình hoặc không khớp đều trả HTTP 403: `{"ok":false,"error":"invalid_secret"}`. Allowlist chưa cấu hình trả 403 `allowed_chats_not_configured`, ngoại trừ `/connect <mã>` để ghép nối chat; pairing vẫn bắt buộc secret và mã hợp lệ.
 4. Chỉ nhận `message`; bỏ qua edited_message và update không có message với HTTP 200 ignored. JSON không phải object, message không phải object hoặc update_id không phải integer không âm thì trả 400 `invalid_update`.
 5. Gọi `room.telegram.update.sudo()._process_update(payload)`: advisory transaction lock theo bot/update_id; receipt đã có thì trả HTTP 200 duplicate/ignored, không chạy lại handler và không gửi lại reply. Receipt mới và nghiệp vụ commit cùng transaction; thay bot token tạo namespace khác. Receipt chưa có chính sách tự dọn (cần giữ để chống replay).
 6. Gửi message kết quả qua Bot API `sendMessage`, rồi trả result JSON HTTP 200.
@@ -311,6 +311,7 @@ Outbound sendMessage POST JSON gồm `chat_id`, `text`, timeout 10 giây. Thiế
 
 | Lệnh | Hành vi |
 | --- | --- |
+| `/connect <mã>` | Ghép nối chat riêng bằng mã một lần, hết hạn 10 phút, do admin tạo trong Settings |
 | `/help` | Trả danh sách lệnh |
 | `/reading P101 350 28 [YYYY-MM-DD]` | Ghi/cập nhật chỉ số điện, nước; không có ngày thì hôm nay |
 | `/reading room:P101 elec:350 water:28 [date:YYYY-MM-DD]` | Cùng nghiệp vụ theo format key:value, giữ thứ tự này |
@@ -332,7 +333,7 @@ Room lookup là domain OR trên ba field, limit 2: không có → lỗi; >1 → 
 
 Upsert đọc `(room_id,reading_date)` chính xác, lấy record mới nhất khi có nhiều bản ghi trùng. Luôn chuẩn bị số trước, preview bằng `new(vals)` rồi kiểm tra regression. Existing có invoice thì lỗi; chưa có invoice thì write; không tìm thấy thì create. Không có SQL unique cho key upsert, không có khóa chống race.
 
-`process_telegram_message()` lấy text, kiểm tra allowlist chat ID, dispatch trong savepoint và bắt **ValidationError** để trả `status:error`; lỗi nghiệp vụ rollback các thay đổi trong handler. Allowlist CSV so sánh `str(chat.id)`, không kiểm tra quyền `from.id` hay ownership phòng. Rỗng allowlist từ chối mọi chat. Exception loại khác rollback request và có thể thành lỗi HTTP ngoài schema result thông thường.
+`process_telegram_message()` lấy text, xử lý trong savepoint và bắt **ValidationError** để trả `status:error`; lỗi nghiệp vụ rollback handler. `/connect` kiểm tra mã và chat riêng trước allowlist; các lệnh nghiệp vụ kiểm tra allowlist chat ID rồi dispatch. Allowlist CSV so sánh `str(chat.id)`, không kiểm tra ownership phòng. Rỗng allowlist từ chối lệnh nghiệp vụ. Exception loại khác rollback request và có thể thành lỗi HTTP ngoài schema result thông thường.
 
 ### Kết quả và idempotency
 
@@ -344,13 +345,22 @@ Webhook deduplicate `update_id`; edited_message không chạy lệnh. Hai messag
 
 ### Settings và setup
 
-Ba config_parameter field: telegram_bot_token, telegram_webhook_secret, telegram_allowed_chat_ids. UI riêng trong Settings giới hạn `base.group_system`, token/secret hiển thị password.
+Bốn config_parameter field: telegram_bot_token, telegram_webhook_secret, telegram_allowed_chat_ids, telegram_public_url. UI Settings giới hạn `base.group_system`; mọi action cũng kiểm tra admin ở server. Giao diện chia bốn khối: Kết nối bot, Ghép nối chat, Trạng thái kết nối, Cấu hình nâng cao (details thu gọn). Label nằm trên input rộng; token/secret hiển thị password. Mã ghép nối và thông tin kết nối readonly trên transient settings. Chat đã cấp quyền readonly trong khối ghép nối, sửa thủ công trong nâng cao. Notification thành công tự đóng; warning giữ đến khi đóng; chi tiết/mã nằm trong form thay vì toast dài. Notification có next action mở lại đúng transient record và tab module để cập nhật field từ server.
 
-`action_register_telegram_commands()` lấy token từ field hiện tại hoặc parameter đã lưu, POST `setMyCommands` với chín lệnh trong bảng, timeout 15 giây; thiếu token/URLError/API ok false → UserError; thành công → display_notification. Nút này **không setWebhook**, không lấy chat ID và không tự lưu toàn bộ field settings trước khi gọi API.
+`action_register_telegram_commands()` gọi setMyCommands với 10 lệnh (gồm connect), không setWebhook hoặc lưu cấu hình. Bot API dùng helper `_telegram_api`, timeout 15 giây, HTTP/network/JSON/API errors thành UserError chung không lộ token. Các endpoint dựa trên [Telegram Bot API chính thức](https://core.telegram.org/bots/api#setwebhook).
 
-Setup vận hành: tạo bot bằng BotFather → cấu hình token/secret/chat IDs → chuẩn bị telegram_code cho phòng → public HTTPS/tunnel tới đúng port instance → gọi setWebhook với URL và secret_token → kiểm tra getWebhookInfo → đăng ký suggestions → test `/help`, reading, inv, show.
+Luồng setup nhanh đã triển khai:
 
-#### Thiết lập Telegram từng bước
+1. Nhập Bot Token và URL HTTPS public của Odoo/tunnel trong Settings. URL không có userinfo/query/fragment; nhận base URL hoặc full route webhook.
+2. Bấm **Kết nối Telegram** (`action_connect_telegram`): tạo secret nếu trống, kiểm tra charset chữ/số/_/- và dài 1–256; setWebhook với allowed_updates=['message'], không drop update đang chờ. Thành công thì lưu token/secret/URL; giữ allowlist đã lưu khi field chat trống; tạo mã và đăng ký gợi ý lệnh. Nếu setMyCommands lỗi sau khi webhook thành công, giữ cấu hình và thông báo warning để đăng ký lệnh lại. Timeout setWebhook có thể có trạng thái remote chưa xác định, cần kiểm tra rồi thử lại.
+3. Copy `/connect <mã>` hiển thị và gửi trong chat riêng với bot trong 10 phút. Mã random 192 bit, dùng một lần; system parameters chỉ lưu hash SHA-256, hash token bot và expiry. Advisory transaction lock serialize tạo/consume mã. Mã mới hoặc đổi bot token vô hiệu mã cũ. Chat phải private, ID integer dương và from.id khớp chat.id; ghép thành công thêm ID vào allowlist, giữ chat đã cấp quyền trước đó. Pairing rollback savepoint khi lỗi và dùng receipt chống replay.
+4. Bot xác nhận xong, tải lại Settings hoặc bấm **Kiểm tra kết nối** trước khi Save để refresh Allowed Chat IDs. Nút kiểm tra gọi getWebhookInfo, hiển thị URL/pending_update_count/last_error_message, cảnh báo URL chưa khớp Settings. URL khớp chưa chứng minh Telegram đã gọi tới Odoo thành công.
+5. **Tạo mã ghép nối** cấp thêm mã cho chat riêng khác. Group vẫn cấu hình Chat IDs thủ công. Khi tunnel đổi URL, nhập URL mới và bấm Kết nối lại.
+6. **Ngắt kết nối** gọi deleteWebhook không drop updates, yêu cầu token khớp bot đã lưu; xóa secret/mã pending để endpoint từ chối request mới, giữ token/URL/allowlist cho lần sau.
+
+Setup thủ công vẫn được hỗ trợ như bên dưới; luồng Settings ở trên không cần tự gọi curl/getUpdates hoặc nhập secret/chat ID. Chuẩn bị telegram_code, tiền thuê/config giá cho phòng rồi test `/help`, reading, inv, show.
+
+#### Thiết lập Telegram thủ công (tùy chọn)
 
 1. Trong BotFather gửi `/newbot`, nhập tên và username kết thúc bằng `bot`, lấy token. Lưu token trong Settings hoặc `Settings -> Technical -> Parameters -> System Parameters`.
 2. Với bot test, nếu đã có webhook, gọi `https://api.telegram.org/bot<YOUR_BOT_TOKEN>/deleteWebhook`; thao tác này ngắt webhook đang dùng của bot đó.
@@ -367,6 +377,7 @@ Template system parameters (điền giá trị trong Odoo, không điền secret
 room_rental_expense.telegram_bot_token =
 room_rental_expense.telegram_webhook_secret =
 room_rental_expense.telegram_allowed_chat_ids =
+room_rental_expense.telegram_public_url =
 room_rental_expense.default_electric_price =
 room_rental_expense.default_water_price =
 room_rental_expense.default_wifi_price =
@@ -434,6 +445,8 @@ Tất cả key có prefix `room_rental_expense.`. XML `data/room_config_data.xml
 | `telegram_allowed_chat_ids` | rỗng | CSV chat.id bắt buộc; rỗng từ chối |
 
 Giá fallback float parse lỗi → 0. `noupdate=1` cũng áp dụng sequence và cron: upgrade module thường giữ dữ liệu đã cấu hình thay vì ghi lại XML defaults. Giá thực tế lấy từ DB, không mặc định luôn bằng bảng này.
+
+`telegram_public_url` được lưu qua Settings, không có default trong XML. Các parameters nội bộ `telegram_pairing_hash`, `telegram_pairing_bot`, `telegram_pairing_expiry` dùng cho mã ghép nối; không cần nhập tay hoặc đưa giá trị thật vào tài liệu.
 
 ### Local instance
 
@@ -527,6 +540,12 @@ Không tự sửa các behavior này khi task chỉ yêu cầu viết context. N
 ### Kiểm chứng phù hợp
 
 Tests nằm trong `project/room_rental_expense/tests/`: test_room_invoice.py (tiền, giá, trạng thái, hủy/tổng, validation, SQL constraints, khóa/link, report HTML), test_meter_reading.py (normal/replacement/manual/regression/previous reading), test_telegram.py (commands, rollback, receipt trùng, ACL, HTTP auth/retry/edited/invalid payload). Các gợi ý bổ sung bên dưới là checklist, không phải kết quả tests đã pass.
+
+**Kết quả cải tiến setup Telegram 2026-10-06 (version 19.0.1.2.0):** test_telegram_setup.py bổ sung connect/setWebhook/setMyCommands, URL/secret invalid, mã đúng/sai/hết hạn/group/reuse/regenerate, kiểm tra/ngắt kết nối, lỗi mạng không lộ token, đăng ký commands lỗi sau setWebhook thành công, reconnect giữ chat, thay bot vô hiệu mã, admin guard. HttpCase test_telegram.py thêm pairing khi allowlist trống, secret sai và retry. Chạy toàn bộ **37 test methods, 0 failed, 0 errors** trên cùng DB test riêng; log `/tmp/room_rental_test_telegram_setup_final.log`. Bot API trong tests được mock; không gọi bot thật hoặc thay webhook thật. View Settings upgrade thành công; chưa kiểm tra trực quan bằng browser hoặc kết nối bot/tunnel thật với UI mới.
+
+Sau bố trí lại UI Settings: upgrade view và 37 tests pass (`/tmp/room_rental_test_telegram_ui.log`); thông báo kết nối/ghép nối tiếp tục được rút gọn sau lần chạy này, pycodestyle pass. Browser automation không khởi tạo được (Windows sandbox helper lỗi), nên chưa xác nhận trực quan layout hoặc client next action trên browser.
+
+Khối thông tin mã ghép nối dùng `role="status"` với class alert-info. Đã upgrade lại trên DB test, không còn warning accessibility về alert role; log `/tmp/room_rental_telegram_view_role.log`.
 
 **Kết quả thực chạy 2026-10-06:** runtime `/home/lamnv/code/odoo-19/odoo-bin`, Python `/home/lamnv/.pyenv/versions/odoo19-env/bin/python`, PostgreSQL local; database riêng `room_rental_test_20261006`, HTTP test port 1379, không dùng config/local.conf hoặc bot thật. Cài addon và upgrade thành công; lần chạy cuối **25 test methods, 0 failed, 0 errors**, bao gồm test migration sửa stored totals/status cũ, render QWeb HTML và HTTP webhook. Log `/tmp/room_rental_test_20261006_final.log` nằm ngoài Git. Chưa kiểm thử PDF wkhtmltopdf, browser assets, race/stress đồng thời, bot/tunnel thật hoặc upgrade database dữ liệu production. Database test được giữ lại để chạy lại.
 

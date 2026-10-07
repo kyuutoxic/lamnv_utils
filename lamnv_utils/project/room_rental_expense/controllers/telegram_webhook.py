@@ -34,18 +34,25 @@ class RoomRentalTelegramWebhook(http.Controller):
                 status=403,
             )
 
-        if not icp.get_param(
-            'room_rental_expense.telegram_allowed_chat_ids', ''
-        ).strip():
-            return request.make_json_response(
-                {'ok': False, 'error': 'allowed_chats_not_configured'},
-                status=403,
-            )
         if not isinstance(payload, dict):
             return request.make_json_response(
                 {'ok': False, 'error': 'invalid_update'}, status=400
             )
         message = payload.get('message') or {}
+        text = message.get('text', '') if isinstance(message, dict) else ''
+        pairing = isinstance(text, str) and text.lower().split()[:1] == [
+            '/connect'
+        ]
+        if (
+            not pairing
+            and not icp.get_param(
+                'room_rental_expense.telegram_allowed_chat_ids', ''
+            ).strip()
+        ):
+            return request.make_json_response(
+                {'ok': False, 'error': 'allowed_chats_not_configured'},
+                status=403,
+            )
         if not message:
             return request.make_json_response({'ok': True, 'ignored': True})
 

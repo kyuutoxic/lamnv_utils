@@ -535,8 +535,14 @@ class MeterReading(models.Model):
                 'telegram_user_id': (message.get('from') or {}).get('id'),
                 'raw_text': text,
             }
-            self._check_telegram_sender_allowed(payload['telegram_chat_id'])
             with self.env.cr.savepoint():
+                if text.split()[0].lower() == '/connect':
+                    return self.env['room.telegram.update']._pair_chat(
+                        message
+                    )
+                self._check_telegram_sender_allowed(
+                    payload['telegram_chat_id']
+                )
                 result = self._dispatch_telegram_command(text, payload)
         except ValidationError as err:
             return {

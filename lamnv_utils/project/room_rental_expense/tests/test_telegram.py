@@ -163,3 +163,26 @@ class TestTelegramWebhook(HttpCase):
         payload.pop('update_id')
         self.assertEqual(self.post(payload).status_code, 400)
         self.assertEqual(self.post(['invalid']).status_code, 400)
+
+    def test_pairing_with_empty_allowlist_and_retry(self):
+        self.icp.set_param('room_rental_expense.telegram_allowed_chat_ids', '')
+        settings = self.env['res.config.settings'].create({})
+        settings._create_telegram_pairing_code()
+        payload = {
+            'update_id': 200,
+            'message': {
+                'text': settings.telegram_pairing_command,
+                'chat': {'id': 123, 'type': 'private'},
+                'from': {'id': 123},
+            },
+        }
+        self.assertEqual(self.post(payload, secret='wrong').status_code, 403)
+        self.assertEqual(self.post(payload).json()['status'], 'success')
+        self.assertTrue(self.post(payload).json()['duplicate'])
+        self.env.registry.clear_cache()
+        self.assertEqual(
+            self.icp.get_param(
+                'room_rental_expense.telegram_allowed_chat_ids'
+            ),
+            '123',
+        )

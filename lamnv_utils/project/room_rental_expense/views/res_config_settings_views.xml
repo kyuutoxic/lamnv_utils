@@ -1,47 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data>
-        <record id="view_res_config_settings_form_room_rental_expense" model="ir.ui.view">
-            <field name="name">res.config.settings.view.form.room.rental.expense</field>
-            <field name="model">res.config.settings</field>
-            <field name="inherit_id" ref="base.res_config_settings_view_form"/>
-            <field name="arch" type="xml">
-                <xpath expr="//form" position="inside">
-                    <app string="Room Rental Expense"
-                         data-string="Room Rental Expense"
-                         name="room_rental_expense"
-                         groups="base.group_system">
-                        <block title="Telegram" id="room_rental_expense_telegram_settings">
-                            <setting string="Cấu hình Telegram Bot"
-                                     help="Cấu hình token và đăng ký lệnh slash. Webhook secret và danh sách chat được phép là bắt buộc để nhận webhook.">
-                                <div class="content-group">
-                                    <div class="row mt16">
-                                        <label for="telegram_bot_token" string="Bot Token" class="col-lg-4 o_light_label"/>
-                                        <field name="telegram_bot_token" password="True" class="oe_inline"/>
-                                    </div>
-                                    <div class="row mt16">
-                                        <label for="telegram_webhook_secret" string="Webhook Secret" class="col-lg-4 o_light_label"/>
-                                        <field name="telegram_webhook_secret" password="True" class="oe_inline"/>
-                                    </div>
-                                    <div class="row mt16">
-                                        <label for="telegram_allowed_chat_ids" string="Allowed Chat IDs" class="col-lg-4 o_light_label"/>
-                                        <field name="telegram_allowed_chat_ids" class="oe_inline"/>
-                                    </div>
-                                    <div class="mt16">
-                                        <button name="action_register_telegram_commands"
-                                                type="object"
-                                                string="Đăng ký lệnh Telegram"
-                                                class="btn btn-primary"/>
-                                    </div>
-                                    <div class="text-muted mt8">
-                                        Sau khi bấm nút này, Telegram sẽ gợi ý các lệnh như /help, /reading, /inv khi người dùng gõ "/".
-                                    </div>
+    <record id="view_res_config_settings_form_room_rental_expense" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.room.rental.expense</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app string="Room Rental Expense" name="room_rental_expense" groups="base.group_system">
+                    <block title="Telegram" id="room_rental_expense_telegram_settings">
+                        <setting string="1. Kết nối bot" help="Nhập token từ BotFather và địa chỉ HTTPS của Odoo hoặc ngrok.">
+                            <div class="content-group mt16">
+                                <label for="telegram_bot_token" string="Bot Token" class="d-block mb-1"/>
+                                <field name="telegram_bot_token" password="True" class="w-100 mb-3" placeholder="Token từ BotFather"/>
+                                <label for="telegram_public_url" string="URL public của Odoo" class="d-block mb-1"/>
+                                <field name="telegram_public_url" class="w-100 mb-3" placeholder="https://example.ngrok-free.app"/>
+                                <button name="action_connect_telegram" type="object" string="Kết nối Telegram" class="btn btn-primary" icon="fa-plug"/>
+                                <p class="text-muted mt-2 mb-0">Secret và gợi ý lệnh được tạo tự động. Khi URL ngrok đổi, kết nối lại bằng URL mới.</p>
+                            </div>
+                        </setting>
+                        <setting string="2. Ghép nối chat" help="Gửi mã dưới đây trong chat riêng với bot để cấp quyền sử dụng.">
+                            <div class="content-group mt16">
+                                <div class="alert alert-info mb-3" role="status" invisible="not telegram_pairing_command">
+                                    <field name="telegram_pairing_command" readonly="1" class="w-100 font-monospace"/>
+                                    <div class="small mt-2">Mã dùng một lần, hết hạn sau 10 phút.</div>
                                 </div>
-                            </setting>
-                        </block>
-                    </app>
-                </xpath>
-            </field>
-        </record>
-    </data>
+                                <button name="action_generate_telegram_pairing" type="object" string="Tạo mã ghép nối" class="btn btn-secondary" icon="fa-link"/>
+                                <p class="text-muted mt-2 mb-0">Bot xác nhận xong, bấm Kiểm tra kết nối để cập nhật chat đã cấp quyền.</p>
+                                <div class="mt-3" invisible="not telegram_allowed_chat_ids">
+                                    <label for="telegram_allowed_chat_ids" string="Chat đã cấp quyền" class="d-block mb-1"/>
+                                    <field name="telegram_allowed_chat_ids" readonly="1" class="w-100"/>
+                                </div>
+                            </div>
+                        </setting>
+                        <setting string="Trạng thái kết nối" help="Kiểm tra webhook và lỗi gần nhất từ Telegram.">
+                            <div class="content-group mt16">
+                                <div class="d-flex flex-wrap gap-2 mb-3">
+                                    <button name="action_check_telegram_connection" type="object" string="Kiểm tra kết nối" class="btn btn-secondary" icon="fa-refresh"/>
+                                    <button name="action_disconnect_telegram" type="object" string="Ngắt kết nối" class="btn btn-outline-danger" confirm="Ngắt webhook Telegram của bot này?"/>
+                                </div>
+                                <div class="border rounded p-3 bg-light" invisible="not telegram_connection_info">
+                                    <field name="telegram_connection_info" readonly="1" class="w-100 mb-0"/>
+                                </div>
+                                <p class="text-muted mb-0" invisible="telegram_connection_info">Chưa kiểm tra. Bấm nút phía trên để lấy trạng thái mới nhất.</p>
+                            </div>
+                        </setting>
+                        <setting string="Cấu hình nâng cao" help="Dành cho chat nhóm hoặc cấu hình webhook thủ công.">
+                            <details class="content-group mt16">
+                                <summary class="text-primary mb-3">Mở cấu hình thủ công</summary>
+                                <label for="telegram_webhook_secret" string="Webhook Secret" class="d-block mb-1"/>
+                                <field name="telegram_webhook_secret" password="True" class="w-100 mb-3"/>
+                                <label for="telegram_allowed_chat_ids_manual" string="Chat IDs (ngăn cách bằng dấu phẩy)" class="d-block mb-1"/>
+                                <field name="telegram_allowed_chat_ids" id="telegram_allowed_chat_ids_manual" class="w-100 mb-3"/>
+                                <button name="action_register_telegram_commands" type="object" string="Đăng ký lại gợi ý lệnh" class="btn btn-secondary"/>
+                            </details>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
 </odoo>
