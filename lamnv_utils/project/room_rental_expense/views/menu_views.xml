@@ -23,6 +23,9 @@
 
         <menuitem id="room_config_menu" name="Giá Tiện Ích" parent="room_rental_config_menu" action="action_room_config" sequence="1"/>
         <menuitem id="room_history_menu" name="Lịch Sử Phòng" parent="room_rental_config_menu" action="action_room_history" sequence="2"/>
+        <menuitem id="telegram_outbox_menu" name="Phản Hồi Telegram"
+                  parent="room_rental_config_menu" action="action_telegram_outbox"
+                  sequence="3" groups="base.group_system"/>
 
         <!-- Submenu: Báo Cáo -->
         <menuitem id="room_rental_report_menu" name="Báo Cáo" parent="room_rental_menu" sequence="40"/>

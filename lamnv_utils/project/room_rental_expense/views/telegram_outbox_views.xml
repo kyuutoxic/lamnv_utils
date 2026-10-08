@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_telegram_outbox_list" model="ir.ui.view">
+        <field name="name">room.telegram.outbox.list</field>
+        <field name="model">room.telegram.outbox</field>
+        <field name="arch" type="xml">
+            <list create="false" edit="false" delete="false" default_order="id desc">
+                <field name="create_date"/>
+                <field name="chat_id"/>
+                <field name="state" widget="badge"/>
+                <field name="next_part"/>
+                <field name="attempts"/>
+                <field name="next_attempt"/>
+                <field name="last_error"/>
+                <button name="action_retry" type="object" string="Gửi lại"
+                        invisible="state != 'failed'" groups="base.group_system"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_telegram_outbox" model="ir.actions.act_window">
+        <field name="name">Phản Hồi Telegram</field>
+        <field name="res_model">room.telegram.outbox</field>
+        <field name="view_mode">list</field>
+    </record>
+</odoo>

@@ -1,6 +1,6 @@
 # lamnv_utils — ngữ cảnh project dành cho AI
 
-> Đối chiếu source ngày **2026-10-07**. Đọc phần 1 trước để nắm nhanh; các phần sau giải thích chi tiết và chỉ đến nơi cần sửa. File này có thể đưa riêng cho AI, không cần đính kèm các README khác để hiểu kiến trúc và nghiệp vụ chính.
+> Đối chiếu source ngày **2026-10-08**. Đọc phần 1 trước để nắm nhanh; các phần sau giải thích chi tiết và chỉ đến nơi cần sửa. File này có thể đưa riêng cho AI, không cần đính kèm các README khác để hiểu kiến trúc và nghiệp vụ chính.
 >
 > Đây là mô tả code đang có, không phải cam kết mọi flow đã chạy thành công. Đã chạy tests Odoo 19 trên database riêng ngày 2026-10-06; phạm vi/kết quả ở phần 13. Khi sửa code, kiểm tra lại file nguồn vì tài liệu là snapshot. Không chứa mật khẩu, bot token hay webhook secret thật.
 
@@ -55,7 +55,7 @@ Quy ước thư mục và đặt tên source của addon dựa trên [Odoo 19 co
 
 ## 1. Nắm project trong 2 phút
 
-`lamnv_utils` là workspace custom addon cho **Odoo 19**, hiện có một addon nghiệp vụ tự viết: **`project/room_rental_expense`**, version manifest `19.0.1.3.1`, author `lamnv`, license `LGPL-3`, application bật, auto-install tắt.
+`lamnv_utils` là workspace custom addon cho **Odoo 19**, hiện có một addon nghiệp vụ tự viết: **`project/room_rental_expense`**, version manifest `19.0.1.4.0`, author `lamnv`, license `LGPL-3`, application bật, auto-install tắt.
 
 Mục đích là **theo dõi chi phí thuê phòng trọ cá nhân**: phòng và chủ phòng, điện nước, tiền thuê, hóa đơn, thanh toán, chi phí phát sinh, tiền cọc, sự cố, lịch sử ở. Telegram giúp nhập nhanh chỉ số và thao tác hóa đơn từ điện thoại. Tên “invoice” ở đây là hóa đơn custom của ứng dụng; không có tích hợp `account.move`, sổ kế toán hoặc cổng thanh toán.
 
@@ -70,13 +70,14 @@ rental.room (phòng, chủ phòng, default_rent)
                 -> mail.activity nhắc thanh toán qua cron
 
 Telegram POST -> controller -> meter.reading.process_telegram_message()
-              -> command handler -> các model Odoo -> sendMessage
+              -> command handler -> các model Odoo + receipt + outbox
+              -> commit -> sendMessage; cron retry nếu lỗi tạm thời
 ```
 
 Những điểm AI cần giữ đúng:
 
 - Logic tiền và trạng thái hóa đơn nằm ở `models/room_invoice.py`; command Telegram cũng gọi ORM, không có database riêng.
-- `models/meter_reading.py` giữ công tơ và parser/dispatcher slash commands; telegram_session.py điều khiển menu nhập theo bước, telegram_update.py giữ pairing/receipt, telegram_reminder.py gửi nhắc hạn, meter_reading_anomaly.py tính cảnh báo, monthly_summary.py tổng kết tháng.
+- `models/meter_reading.py` giữ công tơ và parser/dispatcher slash commands; telegram_session.py điều khiển menu/điều hướng, telegram_update.py giữ pairing/receipt, telegram_outbox.py gửi và retry phản hồi, telegram_reminder.py gửi nhắc hạn, meter_reading_anomaly.py tính cảnh báo, monthly_summary.py tổng kết tháng.
 - Mức tiêu thụ thường = số hiện tại − số cũ. Thay công tơ và nhập tay được hỗ trợ trong Odoo backend.
 - Chỉ số trước là **bản ghi gần nhất có ngày nhỏ hơn ngày đang xét**, không bắt buộc tháng liền trước.
 - Tạo hóa đơn từ UI chỉ số để lại nháp; `/inv` tạo mới sẽ tự xác nhận nếu tổng tiền > 0.
@@ -101,7 +102,7 @@ lamnv_utils/
 │   ├── controllers/telegram_webhook.py
 │   ├── security/ir.model.access.csv
 │   ├── data/                         sequence, mặc định, cron
-│   ├── views/                        10 XML view/menu/settings
+│   ├── views/                        XML view/menu/settings/outbox
 │   ├── reports/invoice_template.xml
 │   ├── tests/                        TransactionCase và HttpCase
 │   ├── migrations/19.0.1.1.0/        tính lại status/tổng khi upgrade
@@ -130,7 +131,7 @@ Manifest khai báo đầy đủ:
 
 `web_responsive` còn phụ thuộc `web_tour`, `mail`, `web`, và khai báo loại trừ `web_enterprise`. Các addon OCA khác nằm trong source không tự động trở thành dependency của phòng trọ.
 
-Addon root import models/controllers; models/__init__.py import nghiệp vụ, settings, telegram_update, monthly_summary, telegram_reminder, meter_reading_anomaly và telegram_session. Controller import qua controllers/__init__.py.
+Addon root import models/controllers; models/__init__.py import nghiệp vụ, settings, telegram_update, monthly_summary, telegram_reminder, meter_reading_anomaly, telegram_session và telegram_outbox. Controller import qua controllers/__init__.py.
 
 Thứ tự load dữ liệu: ACL → sequence → system parameters → cron → report → các views → menu. Asset custom duy nhất được manifest đưa vào `web.assets_backend` là `currency_widget.js`. Không có frontend SPA/build npm riêng cho nghiệp vụ.
 
@@ -145,6 +146,7 @@ Tất cả đường dẫn model trong bảng thuộc `project/room_rental_expen
 | `rental.room` / `rental_room.py` | Phòng, địa chỉ, tòa nhà, diện tích, loại phòng, thời gian thuê, ảnh, chủ phòng, ngân hàng, `telegram_code`, `default_rent`, tổng tài chính |
 | `room.config` / `room_config.py` | Giá điện, nước, wifi, rác, xe, tiện ích khác theo phòng và ngày hiệu lực |
 | `room.telegram.update` / `telegram_update.py` | Receipt nội bộ chống xử lý trùng update theo SHA-256 token bot và update_id; không lưu token/message thật, không cấp ACL cho người dùng thường |
+| `room.telegram.outbox` / `telegram_outbox.py` | Phản hồi được chia phần, lưu cùng receipt/nghiệp vụ; gửi sau commit, retry qua cron; admin được đọc và yêu cầu gửi lại phản hồi failed |
 | `meter.reading` / `meter_reading.py` | Ngày/tháng ghi, số điện/nước cũ/mới, thay công tơ, usage/manual override, ảnh, liên kết hóa đơn; Telegram |
 | `room.invoice` / `room_invoice.py` | Kỳ/ngày/số hóa đơn, hạn trả, thành phần tiền, chiết khấu, đã trả/còn lại, trạng thái, breakdown, giá áp dụng, reading |
 | `room.expense` / `room_expense.py` | Chi phí riêng theo ngày, category, description, amount, ảnh biên lai |
@@ -294,18 +296,25 @@ Validation ngày: due_date không trước invoice_date (bằng nhau được ph
 
 ## 7. Telegram: giao thức và flow
 
-### Menu, nhắc hạn, cảnh báo và tổng kết (19.0.1.3.1)
+### Menu, nhắc hạn, cảnh báo và tổng kết (19.0.1.4.0)
 
 - Sau khi xác nhận ghi chỉ số bằng menu, bot hiện nút **Tạo hóa đơn** cho đúng reading vừa lưu. Bấm nút, nhập kỳ MM/YYYY rồi Xác nhận mới tạo hóa đơn; Hủy không tạo. Hóa đơn mới có tổng > 0 tự xác nhận như /inv; nếu reading đã có hóa đơn cùng kỳ thì trả hóa đơn đó, không tạo trùng hoặc đổi trạng thái; khác kỳ phải dùng menu Đổi kỳ hóa đơn. Nút chỉ áp dụng trong phiên vừa ghi, hết hạn hoặc /menu sẽ bỏ lựa chọn này.
 - `/start` hoặc `/menu` hiện reply keyboard: Ghi chỉ số, Hóa đơn, Thanh toán, Tổng kết tháng, Đổi kỳ hóa đơn, Sửa ngày chỉ số, Hủy. Menu dùng text messages, không callback_query; không cần thay allowed_updates. Chỉ xử lý menu sau khi chat đã được cấp quyền. Session nội bộ khóa theo hash bot token/chat ID/from user ID, hết hạn sau 30 phút không hoạt động; mỗi user trong group có phiên riêng. `/cancel`/Hủy bỏ phiên nhập; slash command khác cũng xóa phiên đang nhập để tránh xác nhận nhầm. Dữ liệu phiên gồm lựa chọn/numeric/date, không lưu raw message.
 - Ghi chỉ số: chọn phòng (tối đa 30 nút hoặc nhập mã) → điện → nước → ngày/Hôm nay → preview/cảnh báo → Xác nhận. Chưa xác nhận thì chưa create/write reading. Ngày/số và regression được validate; confirm gọi upsert hiện có, chặn reading đã có invoice. Sau thành công, phiên giữ reading để chọn Tạo hóa đơn; receipt ngăn duplicate confirmation. Kỳ thay công tơ/manual tiếp tục nhập trong backend.
-- Hóa đơn: chọn phòng → tối đa 10 invoice không canceled → chọn số để xem chi tiết. Thanh toán: chọn tối đa 20 invoice không draft/paid/canceled → nhập số tiền VND → Xác nhận. Chỉ confirm mới gọi handler pay hiện có; validation overpayment/canceled vẫn áp dụng. Các menu không thay đổi mô hình paid_amount hoặc cọc.
+- Hóa đơn: chọn phòng → danh sách 8 hóa đơn/trang, theo invoice_date desc/id desc, không canceled → chọn nhãn hoặc nhập số để xem chi tiết. Nhãn gồm số/phòng/kỳ/số tiền còn lại, xuất hiện cả trong tin và keyboard. Bộ lọc Tất cả (default, gồm draft), Chưa trả (không draft/paid, còn tiền), Quá hạn (Chưa trả và due_date < hôm nay), Đã trả; đổi lọc về trang đầu. Trang trước/sau được giới hạn theo số trang hiện tại. Thanh toán dùng cùng danh sách cho tất cả phòng, default Chưa trả, chỉ có Chưa trả/Quá hạn; chọn hóa đơn → nhập tiền hoặc Trả hết → Xác nhận. Nhập số hóa đơn trực tiếp vẫn được; server kiểm tra điều kiện trả và phòng đã chọn khi xem. Danh sách rỗng vẫn có bộ lọc/Hủy. Không thay mô hình paid_amount hoặc cọc.
+- Quay lại: xuất hiện ở bước nhập tiếp theo, giữ snapshot dữ liệu và prompt của bước trước, cho sửa điện/nước/ngày, số tiền trả, kỳ và lý do. Quay lại từ chi tiết hóa đơn hoặc nhập tiền sẽ đọc lại danh sách, giữ bộ lọc/trang và kiểm tra dữ liệu mới. Không create/write nghiệp vụ khi Quay lại. Sau xác nhận ghi chỉ số/thanh toán/đổi kỳ/sửa ngày/tạo hóa đơn, xóa lịch sử điều hướng; không dùng Quay lại để hoàn tác dữ liệu đã lưu. Hủy, /menu, đổi thao tác, slash command khác hoặc hết hạn cũng bỏ lịch sử. Session lưu thêm snapshot và phản hồi để tái hiện prompt, không lưu token/raw inbound message.
 - Tổng kết: menu chọn phòng/tháng hoặc `/summary MM/YYYY [mã_phòng]`; bỏ mã để xem tất cả phòng. Backend Báo Cáo → Tổng Kết Tháng dùng transient room.monthly.summary, không tạo bảng snapshot tài chính. Theo invoice_period_date và expense_date, loại invoice draft/canceled; gồm rent/điện/nước/utilities/other/discount và chi phí phát sinh độc lập. Tổng cost = tổng invoice.total_amount + expenses. So sánh chênh lệch VND với tháng trước. paid/remaining là số hiện tại trên invoice kỳ được chọn, không phải dòng tiền theo ngày trả (chưa có payment ledger). Không gồm tiền cọc.
 - Cảnh báo: anomaly_warning non-stored trên reading, hiện trong form và Telegram success/preview. Mặc định tăng >50% so với mức trung bình có trọng số ngày (tổng usage/tổng ngày) của tối đa 3 interval lịch sử gần nhất; cần ít nhất 2 interval hợp lệ dài từ 7 ngày. Chuỗi số cũ phải khớp số hiện tại của reading trước để so sánh; chuỗi không khớp bị bỏ qua. Hai lần ghi hiện tại cách dưới 7 ngày chỉ hiện thông báo chưa đủ khoảng thời gian so sánh và gợi ý dùng ngày đo thực tế, không hiện phần trăm tăng. Usage quy đổi theo số ngày giữa hai reading; không so kỳ replaced/manual hoặc baseline 0. Chỉ cảnh báo, không chặn lưu. Đổi ngưỡng qua Settings; thay lịch sử/param cần reload để lấy compute mới.
 - Nhắc hạn: opt-in telegram_reminders_enabled (mặc định tắt), reminder_days mặc định 3. Cron status hiện có gọi room.telegram.reminder._run_reminders; giữ todo activity và sửa activity_schedule dùng activity_type_id cho Odoo 19. Chỉ invoice không draft/paid/canceled, remaining>0, có due_date. Gửi một lần upcoming khi vào cửa sổ, một lần overdue sau hạn cho mỗi bot_key/invoice/chat/due_date; không gửi hàng ngày. Nếu đổi hạn hoặc đổi bot token sẽ có key mới. bot_key là SHA-256 của token, không lưu token trong delivery. Cron chỉ gửi pending thuộc bot hiện tại; không phát pending bot cũ qua bot mới. Migration 19.0.1.3.1 gán delivery legacy cho hash token đang cấu hình và giữ state để không gửi lại trên cùng bot sau upgrade; chưa thể suy ra bot cũ nếu token đã đổi trước upgrade. Mọi chat trong allowlist nhận nhắc (không có mapping ownership phòng). Delivery pending/sent/skipped, unique key và advisory lock chống trùng các lần cron thông thường; failure/API ok false retry lần cron sau. Trước gửi kiểm tra lại status/còn lại/hạn/chat. Token/allowlist trống hoặc setting tắt thì không gửi. Network gửi thành công nhưng process chết trước DB commit vẫn có thể gửi trùng lần sau; chưa có exactly-once giao tiếp ngoài DB.
 - Scheduler local vẫn max_cron_threads=0: để nhắc tự động cần chạy Odoo với --max-cron-threads=1 và bật Nhắc hạn Telegram trong Settings rồi Save. Code không tự đổi config, không tự kích hoạt bot thật.
 
 Models session/reminder chỉ cấp read cho base.group_system, mutation nội bộ sudo. Monthly summary cấp CRUD transient cho base.group_user. Python files mới import qua models/__init__.py, view summary được manifest load trước menu.
+
+**Trả hết trong menu Thanh toán (2026-10-08):** chọn hóa đơn sẽ hiện chi tiết và nút Trả hết; vẫn có thể nhập số tiền để trả một phần. Bấm Trả hết lấy số dư còn lại và hiện preview, chỉ Xác nhận mới thanh toán đủ qua handler paid hiện có. Hủy/hết hạn không thanh toán. Khi xác nhận, khóa và đọc lại hóa đơn; nếu số dư đã đổi hoặc hóa đơn đã paid/draft/canceled thì từ chối, yêu cầu chọn Thanh toán để kiểm tra lại. Không tự trả số tiền khác với preview. Receipt vẫn chống xử lý lặp update; không thêm payment ledger.
+
+**Chọn kỳ hiện tại (2026-10-08):** bước nhập kỳ khi Tạo hóa đơn, Đổi kỳ hóa đơn và chọn tháng Tổng kết có nút `Kỳ hiện tại (MM/YYYY)`. Tháng lấy theo fields.Date.context_today của session lúc hiện nút và được lưu trong values.current_period; bấm nút dùng đúng kỳ đã hiển thị, kể cả khi qua tháng mới trước lúc bấm. Vẫn được nhập tay kỳ khác; không tự dùng tháng reading hoặc kỳ đang lưu trên hóa đơn. Tạo/đổi kỳ vẫn phải preview/Xác nhận và áp dụng validation hiện có. Quay lại giữ nút/kỳ đã gợi ý của bước trước.
+
+**Giao diện menu Telegram (2026-10-08):** reply keyboard dùng emoji làm icon và bố cục hai cột: 🔢 Ghi chỉ số / 🧾 Hóa đơn; 💳 Thanh toán / 📊 Tổng kết tháng; 🗓️ Đổi kỳ hóa đơn / ✏️ Sửa ngày chỉ số; ❌ Hủy. Tin /menu có tiêu đề 🏠 PHÒNG TRỌ, mô tả thao tác và hướng dẫn /menu, /cancel; ô nhập có placeholder. Icon áp dụng cả Tạo hóa đơn, Trả hết, Xác nhận, Hôm nay, Kỳ hiện tại, bộ lọc và chuyển trang. Quay lại/Hủy nằm cùng hàng điều hướng; bộ lọc tối đa hai nút/hàng. Phòng có 🏠, lựa chọn hóa đơn có 🧾, tiêu đề danh sách có số trang/tổng hóa đơn. Nhận cả nhãn có icon và text không icon từ keyboard cũ hoặc nhập tay; chỉ nhận alias chính xác của nút, không xóa emoji tùy ý khỏi mô tả/lý do. Mã phòng/số hóa đơn/slash commands giữ cú pháp cũ. Đây là reply keyboard text, chưa chuyển sang inline callback hoặc rich messages.
 
 ### Inbound controller
 
@@ -316,9 +325,13 @@ Models session/reminder chỉ cấp read cho base.group_system, mutation nội b
 3. Secret chưa cấu hình hoặc không khớp đều trả HTTP 403: `{"ok":false,"error":"invalid_secret"}`. Allowlist chưa cấu hình trả 403 `allowed_chats_not_configured`, ngoại trừ `/connect <mã>` để ghép nối chat; pairing vẫn bắt buộc secret và mã hợp lệ.
 4. Chỉ nhận `message`; bỏ qua edited_message và update không có message với HTTP 200 ignored. JSON không phải object, message không phải object hoặc update_id không phải integer không âm thì trả 400 `invalid_update`.
 5. Gọi `room.telegram.update.sudo()._process_update(payload)`: advisory transaction lock theo bot/update_id; receipt đã có thì trả HTTP 200 duplicate/ignored, không chạy lại handler và không gửi lại reply. Receipt mới và nghiệp vụ commit cùng transaction; thay bot token tạo namespace khác. Receipt chưa có chính sách tự dọn (cần giữ để chống replay).
-6. Gửi message kết quả qua Bot API `sendMessage`, rồi trả result JSON HTTP 200.
+6. Tạo outbox cho message kết quả trong cùng transaction với receipt/nghiệp vụ, rồi trả result JSON HTTP 200. Receipt trùng không tạo outbox thứ hai hoặc chạy lại nghiệp vụ. Callback postcommit mở cursor riêng để gửi phản hồi ngay sau commit; cron xử lý phản hồi còn pending. Transaction rollback không để lại receipt/outbox/nghiệp vụ.
 
-Outbound reply sendMessage POST JSON gồm `chat_id`, `text` và `reply_markup` khi dùng menu, timeout 10 giây. Thiếu token/chat/text thì bỏ qua gửi. `URLError` được log và không cố ý rollback nghiệp vụ. Không có retry/queue, không kiểm tra body `ok` của sendMessage, không chia tin dài.
+Outbound reply `telegram_outbox.py` gửi sendMessage POST JSON gồm chat_id/text, timeout 10 giây; chỉ gắn keyboard ở phần cuối và chỉ khi không có phản hồi mới hơn cùng bot/chat để tránh khôi phục menu cũ. Thiếu token/chat/text thì không tạo outbox. Tin được chia tối đa 4000 UTF-16 units/phần, ưu tiên ngắt tại newline, giữ nguyên nội dung kể cả emoji. Giới hạn sendMessage và retry_after tham chiếu [Telegram Bot API](https://core.telegram.org/bots/api#sendmessage).
+
+Outbox lưu bot hash, chat, nội dung phản hồi/keyboard (có thể chứa thông tin tài chính), chỉ admin được đọc; không lưu token hoặc nguyên message nhận vào. State pending/sent/failed/skipped, next_part giữ tiến độ các phần đã gửi; API phải trả ok=true mới coi là thành công. Network/JSON lỗi, 429 và 5xx retry: tối đa 5 lần thất bại cho phần hiện tại, delay 60/120/240/480 giây (trần 3600), tôn trọng retry_after dương từ Telegram. Lỗi API khác dừng failed. Cron 1 phút lấy tối đa 20 pending đến hạn. Khóa bot/chat và row, chỉ gửi khi không còn pending cũ hơn trong cùng bot/chat. Bot token đổi hoặc chat bị thu hồi thì skipped; không gửi phản hồi bot cũ bằng bot mới. Gửi thành công rồi process chết trước commit vẫn có thể gửi trùng; đây không phải exactly-once với Telegram.
+
+Admin xem Cấu Hình → Phản Hồi Telegram: thời gian, chat, state, tiến độ, số lần lỗi, lần retry tiếp theo, mã lỗi đã rút gọn (không lưu URL/token/API description). Nút Gửi lại chỉ áp dụng failed, kiểm tra group_system ở server, reset attempts và đưa lại pending, giữ next_part; cron gửi tiếp. Không tự gửi lại skipped/sent. Postcommit lỗi nội bộ để pending cho cron. Scheduler local vẫn tắt nên retry tự động cần max_cron_threads >= 1; gửi ngay sau commit không phụ thuộc cron.
 
 ### Sửa ngày đo của chỉ số nhập muộn
 
@@ -445,6 +458,8 @@ Invoice form có confirm/paid/cancel/PDF, statusbar, chi tiết và ghi chú, pa
 
 `data/cron_data.xml` tạo `cron_room_invoice_status_update`, name “Room Invoice Status Update”, interval 1 ngày, active, gọi `model.cron_update_overdue_status()`.
 
+Cùng file tạo `cron_telegram_reply_retry`, interval 1 phút, active, gọi room.telegram.outbox._cron_retry(). Cron này độc lập setting nhắc hạn; dùng cho retry phản hồi nghiệp vụ đã lưu. Sau upgrade lên 19.0.1.4.0 phải có cron này và model/ACL/view outbox.
+
 Method đọc reminder_days, parse int (ValueError fallback 3). Tìm invoice không paid/canceled, có due_date < today rồi gọi bảng auto status; partial chuyển overdue, draft chưa trả vẫn giữ draft.
 
 Tìm invoice draft/pending/partial với due_date từ hôm nay đến hôm nay + reminder_days, tạo todo activity nếu chưa có cùng activity type và summary “Nhắc thanh toán hóa đơn”. Deadline = due_date, note gồm số/hạn/còn lại. Sau đó chạy nhắc Telegram opt-in như phần 7. Không có email template riêng hoặc tự close reminder activity khi đã thanh toán.
@@ -537,7 +552,7 @@ Các mục dưới là quan sát từ code, không phải danh sách bug đã t�
 6. **Status:** partial quá hạn chuyển overdue; unpaid từ paid về pending/overdue. Draft chưa trả hết hạn chưa tự overdue. Actions/commands thanh toán từ chối canceled; write paid_amount trực tiếp vẫn theo ràng buộc tài chính, không bị khóa theo canceled.
 7. **Validation tài chính:** đã chặn other_charges âm, discount vượt subtotal, overpayment. Model bổ trợ cọc/chi phí vẫn chưa kiểm tra số âm/ngày.
 8. **Create áp giá force** có thể ghi đè giá tay; rent 0 có thể bị thay bằng default_rent. Reprice theo invoice_date, không chỉ theo invoice_month.
-9. **Telegram đã dedup update_id**, bỏ qua edited_message, savepoint rollback lỗi nghiệp vụ; chưa normalize command @botname, chia message dài hoặc xử lý file/OCR. Chỉ ValidationError chuyển schema lỗi nghiệp vụ; receipt chưa tự dọn.
+9. **Telegram đã dedup update_id**, bỏ qua edited_message, savepoint rollback lỗi nghiệp vụ; đã có outbox/chia tin/retry phản hồi. Chưa normalize command @botname hoặc xử lý file/OCR. Chỉ ValidationError chuyển schema lỗi nghiệp vụ; receipt/outbox chưa tự dọn. Outbox chứa phản hồi tài chính, chỉ admin được đọc; gửi ngoài DB chưa bảo đảm exactly-once.
 10. **UI:** action Python dùng list,form, report dùng record ir.actions.report. Kanban badge chưa thực sự kiểm tra sắp hết hạn; PDF/assets UI cần kiểm tra trực quan riêng.
 11. **Local cron tắt**, public tunnel/outbound/token không thể xác nhận từ code. Không có Prometheus/Grafana/APM custom đã triển khai trong addon. Khi theo dõi vận hành, kiểm tra Odoo/proxy logs, webhook 403/5xx, reply failures, lần chạy cron và reminder activities; đây là hướng dẫn, không phải monitoring đã tích hợp.
 12. **Tests:** đã thêm TransactionCase/HttpCase riêng và bỏ pattern test_*.py trong .gitignore. Chưa có browser tour, stress test đồng thời, kiểm thử Telegram bot/public tunnel thật.
@@ -556,6 +571,8 @@ Không tự sửa các behavior này khi task chỉ yêu cầu viết context. N
 | Thêm/đổi lệnh Telegram | meter_reading dispatcher/handler/help | settings command payload, controller nếu protocol đổi, phần Telegram và kiểm chứng trong context |
 | Token/secret/allowlist | models/res_config_settings.py | views/res_config_settings_views.xml, controller, sender check, defaults/template |
 | Cron/nhắc hạn | room_invoice.cron_update_overdue_status | _schedule_reminder_activity, cron_data.xml, reminder_days, local scheduler config |
+| Danh sách hóa đơn/Quay lại Telegram | telegram_session._invoice_list/_navigate/_present | step/values/navigation/last_reply, test_telegram_features.py |
+| Gửi phản hồi/retry Telegram | telegram_update._process_update, telegram_outbox.py | controller, cron_data.xml, ACL, telegram_outbox_views.xml, test_telegram_outbox.py |
 | PDF | reports/invoice_template.xml | action_print_invoice, manual_breakdown, manifest load |
 | Format tiền/số | static/src/js/currency_widget.js | Python formatted fields, XML widgets, Telegram amount format, PDF |
 | Menu/icon/list | views/menu_views.xml và view liên quan | room_icon.png, manifest/OCA assets |
@@ -564,6 +581,16 @@ Không tự sửa các behavior này khi task chỉ yêu cầu viết context. N
 Đường dẫn trong bảng tương đối với `project/room_rental_expense/`.
 
 ### Kiểm chứng phù hợp
+
+**UI Telegram có icon (2026-10-08):** toàn bộ 96 test methods Odoo pass, 0 failed/errors; log `/tmp/room_rental_tele_icons.log`. Hai regression tests mới bấm nhãn có icon từ menu → chọn phòng/hóa đơn → Trả hết/Quay lại/Xác nhận/Hủy, ghi chỉ số/Hôm nay/Tạo hóa đơn/Kỳ hiện tại và bộ lọc. Tests cũ tiếp tục kiểm tra text không icon. Sau gom Quay lại/Hủy vào một hàng duy nhất, chạy lại 50 tests TestTelegramFeatures, 0 failed/errors; log `/tmp/room_rental_tele_icons_final.log`. Pycodestyle hai file Python thay đổi và git diff --check pass. Bot API mock; chưa kiểm tra trực quan Telegram trên điện thoại hoặc upgrade DB người dùng.
+
+**Nút Kỳ hiện tại (2026-10-08):** 48 tests TestTelegramFeatures pass, 0 failed/errors trên DB test riêng; log `/tmp/room_rental_current_period.log`. Hai tests mới kiểm tra tạo hóa đơn bằng nút, Quay lại giữ gợi ý, chỉ lưu sau xác nhận, đổi kỳ và tổng kết theo tháng được chọn. Nhập tay kỳ khác tiếp tục được kiểm tra bởi tests hiện có. Pycodestyle hai file Python thay đổi và git diff --check pass. Chưa thử bot thật hoặc upgrade DB người dùng.
+
+**Telegram danh sách/Quay lại/outbox 19.0.1.4.0 (2026-10-08):** toàn bộ 92 test methods Odoo pass, 0 failed/errors trên database riêng `room_rental_test_20261006`; log `/tmp/room_rental_tele_improve.log`. Tests mới kiểm tra nhãn/lọc/phân trang/rỗng/cách ly phòng, Quay lại sửa chỉ số/số tiền/kỳ/lý do mà không hoàn tác dữ liệu đã lưu, queue dedup và rollback, Unicode/chia tin/tiếp tục phần lỗi, 429 retry_after, lỗi API vĩnh viễn, giới hạn retry, đổi bot/thu hồi chat, thứ tự chat/keyboard cũ, cron và gửi lại chỉ dành cho admin. HttpCase kiểm tra webhook tạo queue và gửi keyboard bằng sender thật với API mock; postcommit của runner HttpCase được mô phỏng bằng gọi delivery. Smoke riêng ngoài test mode thực chạy commit/cursor mới → gửi thành công, gửi lỗi → pending → cron retry thành công, API mock, fixture được xóa và parameters test được khôi phục; log `/tmp/room_telegram_outbox_smoke.log`. View/ACL/cron upgrade trên DB test thành công. Chưa thử bot thật, browser, scheduler chạy liên tục hoặc upgrade DB người dùng.
+
+**Nút Trả hết Telegram (2026-10-08):** toàn bộ 79 test methods Odoo pass, 0 failed/errors trên DB test riêng `room_rental_test_20261006`; log `/tmp/room_rental_pay_full.log`. Ba regression tests mới kiểm tra trả phần còn lại sau thanh toán một phần, chỉ ghi khi xác nhận, replay update/bấm lặp, Hủy, số dư thay đổi sau preview và hóa đơn bị hủy. `git diff --check` và giới hạn 79 ký tự của hai file Python thay đổi pass. Chưa chạy pycodestyle vì runtime thiếu package; chưa thử bot thật hoặc upgrade DB người dùng.
+
+Sau kiểm tra Telegram 19.0.1.4.0: bổ sung sudo nội bộ cho cron outbox, chạy lại 8 tests TestTelegramOutbox (gồm cron chạy dưới user không có quyền ghi outbox), 0 failed/errors; log `/tmp/room_rental_outbox_final.log`. Pycodestyle toàn bộ Python thay đổi và git diff --check pass; package lint chỉ cài trong `/tmp/room_rental_lint`, không đổi dependency/runtime Odoo. Comment/docstring Python mới không vượt 72 ký tự.
 
 **Sửa ngày độc lập với lịch sử chưa chỉnh xong (2026-10-07):** 76 tests pass, 0 failed/errors, `/tmp/room_rental_date_warning.log`. Kiểm tra bản sau 06/10 còn ngày nhập muộn, bản mới nhất chuyển về 30/07: cảnh báo với ngày/số, vẫn xác nhận được; invoice_date và tiền giữ nguyên. Chuỗi đảo chiều chỉ cảnh báo cho action sửa ngày; guard số mới thấp hơn số trước trong nhập chỉ số thông thường vẫn giữ. Kiểm tra ngày trùng/tương lai/canceled/stale vẫn pass. pycodestyle pass. Quy tắc hiện tại thay guard chặn đảo chiều được thử ở các lần chạy cũ bên dưới.
 

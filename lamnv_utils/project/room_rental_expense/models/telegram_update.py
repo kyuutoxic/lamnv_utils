@@ -40,7 +40,10 @@ class RoomTelegramUpdate(models.Model):
         result = self.env['meter.reading'].process_telegram_message(
             payload['message']
         )
-        self.create({'bot_key': bot_key, 'update_id': update_id})
+        receipt = self.create({'bot_key': bot_key, 'update_id': update_id})
+        self.env['room.telegram.outbox']._enqueue(
+            receipt, payload['message'], result
+        )
         return result
 
     @api.model

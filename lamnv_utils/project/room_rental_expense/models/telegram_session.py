@@ -1,9 +1,31 @@
+import copy
 import hashlib
 import math
 from datetime import timedelta
 
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
+
+MENU_ICONS = {
+    'Ghi chỉ số': '🔢',
+    'Hóa đơn': '🧾',
+    'Thanh toán': '💳',
+    'Tổng kết tháng': '📊',
+    'Đổi kỳ hóa đơn': '🗓️',
+    'Sửa ngày chỉ số': '✏️',
+    'Tạo hóa đơn': '➕',
+    'Trả hết': '💰',
+    'Xác nhận': '✅',
+    'Hủy': '❌',
+    'Quay lại': '⬅️',
+    'Hôm nay': '📅',
+    'Chưa trả': '🟠',
+    'Quá hạn': '🔴',
+    'Đã trả': '🟢',
+    'Tất cả': '📋',
+    'Trang trước': '◀️',
+    'Trang sau': '▶️',
+}
 
 
 class RoomTelegramSession(models.Model):
@@ -15,33 +37,54 @@ class RoomTelegramSession(models.Model):
     user_id = fields.Char(required=True)
     step = fields.Char(default='menu')
     values = fields.Json(default=dict)
+    navigation = fields.Json(default=list)
+    last_reply = fields.Json(default=dict)
     expires_at = fields.Datetime(required=True)
     _session_unique = models.Constraint(
         'unique(bot_key, chat_id, user_id)', 'Phiên Telegram đã tồn tại.'
     )
 
     @api.model
+    def _button_label(self, text):
+        icon = MENU_ICONS.get(text)
+        if text.startswith('Kỳ hiện tại ('):
+            icon = '📅'
+        return f'{icon} {text}' if icon else text
+
+    @api.model
+    def _menu_text(self, text):
+        for command in MENU_ICONS:
+            if text == self._button_label(command):
+                return command
+        if text.startswith('📅 Kỳ hiện tại ('):
+            return text.removeprefix('📅 ')
+        return text
+
+    @api.model
     def _reply(self, text, buttons=None):
         buttons = buttons or [
             ['Ghi chỉ số', 'Hóa đơn'],
             ['Thanh toán', 'Tổng kết tháng'],
-            ['Đổi kỳ hóa đơn'],
-            ['Sửa ngày chỉ số'],
+            ['Đổi kỳ hóa đơn', 'Sửa ngày chỉ số'],
             ['Hủy'],
         ]
         return {
             'status': 'success',
             'message': text,
             'reply_markup': {
-                'keyboard': buttons,
+                'keyboard': [
+                    [self._button_label(button) for button in row]
+                    for row in buttons
+                ],
                 'resize_keyboard': True,
                 'one_time_keyboard': False,
+                'input_field_placeholder': 'Chọn nút hoặc nhập nội dung…',
             },
         }
 
     @api.model
     def _handle_message(self, message):
-        text = (message.get('text') or '').strip()
+        text = self._menu_text((message.get('text') or '').strip())
         commands = {
             '/start',
             '/menu',
@@ -103,6 +146,8 @@ class RoomTelegramSession(models.Model):
                 }
             )
         session.expires_at = fields.Datetime.now() + timedelta(minutes=30)
+        if text in commands:
+            session.navigation = []
         if text in ('Đổi kỳ hóa đơn', 'Sửa ngày chỉ số'):
             session.write({'step': 'change_invoice', 'values': {}})
             domain = [('status', '!=', 'canceled')]
@@ -113,7 +158,7 @@ class RoomTelegramSession(models.Model):
                 limit=20,
             )
             choices = {
-                f'{inv.invoice_number} | {inv.room_id.name} | '
+                f'🧾 {inv.invoice_number} | {inv.room_id.name} | '
                 f'{inv.invoice_month}': inv.invoice_number
                 for inv in invoices
             }
@@ -126,43 +171,177 @@ class RoomTelegramSession(models.Model):
                     f'Không có hóa đơn phù hợp cho {text}. '
                     'Hóa đơn đã hủy không được chọn.'
                 )
-            return self._reply(
+            return session._present(self._reply(
                 f'{text} (tối đa 20 hóa đơn phù hợp mới nhất):\n'
                 + '\n'.join(choices)
                 + '\nBấm nút hóa đơn bên dưới hoặc nhập số hóa đơn.',
                 [[label] for label in choices] + [['Hủy']],
-            )
+            ))
         if text in ('/start', '/menu', 'Hủy', '/cancel'):
             session.write({'step': 'menu', 'values': {}})
-            return self._reply(
-                'Chọn thao tác. Gõ /menu để quay lại bất cứ lúc nào.'
-            )
+            return session._present(self._reply(
+                '🏠 PHÒNG TRỌ\n\n'
+                '🔢 Ghi điện nước • 🧾 Xem hóa đơn\n'
+                '💳 Thanh toán • 📊 Tổng kết chi phí\n'
+                '🗓️ Đổi kỳ • ✏️ Sửa ngày chỉ số\n\n'
+                '👇 Chọn thao tác bên dưới.\n'
+                'Gõ /menu để về menu, /cancel để hủy.'
+            ))
         if text in ('Ghi chỉ số', 'Hóa đơn', 'Thanh toán', 'Tổng kết tháng'):
             if text == 'Thanh toán':
-                session.write({'step': 'invoice', 'values': {}})
-                invoices = self.env['room.invoice'].search(
-                    [
-                        ('status', 'not in', ['draft', 'paid', 'canceled']),
-                        ('remaining_amount', '>', 0),
-                    ],
-                    limit=20,
+                session.write(
+                    {'step': 'invoice', 'values': {'filter': 'Chưa trả'}}
                 )
-                return self._reply(
-                    'Chọn số hóa đơn cần thanh toán.',
-                    [[inv.invoice_number] for inv in invoices] + [['Hủy']],
-                )
+                return session._present(session._invoice_list())
             session.write({'step': 'room', 'values': {'action': text}})
             rooms = self.env['rental.room'].search([], limit=30)
-            return self._reply(
+            return session._present(self._reply(
                 'Chọn phòng (hoặc nhập mã phòng).',
-                [[f'#{room.id} - {room.name}'] for room in rooms] + [['Hủy']],
+                [[f'🏠 #{room.id} - {room.name}'] for room in rooms]
+                + [['Hủy']],
+            ))
+        return session._navigate(text)
+
+    def _present(self, result):
+        result = copy.deepcopy(result)
+        if self.navigation:
+            keyboard = result.get('reply_markup', {}).get('keyboard', [])
+            rows = [
+                [button for button in row
+                 if self._menu_text(button) not in ('Quay lại', 'Hủy')]
+                for row in keyboard
+            ]
+            result['reply_markup']['keyboard'] = [row for row in rows if row]
+            result['reply_markup']['keyboard'].append(
+                [self._button_label('Quay lại'), self._button_label('Hủy')]
             )
-        return session._advance(text)
+        self.last_reply = result
+        return result
+
+    def _navigate(self, text):
+        history = list(self.navigation or [])
+        if text == 'Quay lại':
+            if not history:
+                return self._present(self._reply('Chọn thao tác từ menu.'))
+            previous = history.pop()
+            self.write(
+                {
+                    'step': previous['step'],
+                    'values': previous['values'],
+                    'navigation': history,
+                }
+            )
+            if self.step in ('invoice', 'show_invoice'):
+                return self._present(self._invoice_list())
+            result = previous['reply']
+            keyboard = result.get('reply_markup', {}).get('keyboard', [])
+            result['reply_markup']['keyboard'] = [
+                [button for button in row
+                 if self._menu_text(button) != 'Quay lại']
+                for row in keyboard
+                if any(self._menu_text(button) != 'Quay lại' for button in row)
+            ]
+            return self._present(result)
+        previous = {
+            'step': self.step,
+            'values': copy.deepcopy(self.values or {}),
+            'reply': copy.deepcopy(self.last_reply or self._reply('')),
+        }
+        result = self._advance(text)
+        if self.step in ('menu', 'reading_saved'):
+            history = []
+        elif self.step != previous['step']:
+            history.append(previous)
+        self.navigation = history
+        return self._present(result)
+
+    def _invoice_list(self):
+        values = dict(self.values or {})
+        selected = values.get('filter', 'Tất cả')
+        domain = [('status', '!=', 'canceled')]
+        if values.get('room_id'):
+            domain.append(('room_id', '=', values['room_id']))
+        if (
+            self.step == 'invoice' or selected in ('Chưa trả', 'Quá hạn')
+        ):
+            domain += [
+                ('status', 'not in', ['draft', 'paid']),
+                ('remaining_amount', '>', 0),
+            ]
+        if selected == 'Đã trả':
+            domain.append(('status', '=', 'paid'))
+        elif selected == 'Quá hạn':
+            domain.append(
+                ('due_date', '<', fields.Date.context_today(self))
+            )
+        invoices = self.env['room.invoice']
+        count = invoices.search_count(domain)
+        pages = max(1, (count + 7) // 8)
+        page = max(0, min(values.get('page', 0), pages - 1))
+        records = invoices.search(
+            domain, offset=page * 8, limit=8,
+            order='invoice_date desc, id desc',
+        )
+        choices = {
+            f'🧾 {inv.invoice_number} | {inv.room_id.name} | '
+            f'{inv.invoice_month} | Còn '
+            f'{inv.room_id.format_vnd_amount(inv.remaining_amount)}đ':
+            inv.invoice_number
+            for inv in records
+        }
+        values.update({'invoice_choices': choices, 'page': page})
+        self.values = values
+        buttons = [[label] for label in choices]
+        filters = ['Chưa trả', 'Quá hạn']
+        if self.step == 'show_invoice':
+            filters += ['Đã trả', 'Tất cả']
+        buttons += [filters[index:index + 2]
+                    for index in range(0, len(filters), 2)]
+        paging = []
+        if page:
+            paging.append('Trang trước')
+        if page + 1 < pages:
+            paging.append('Trang sau')
+        if paging:
+            buttons.append(paging)
+        buttons.append(['Hủy'])
+        return self._reply(
+            f'🧾 Hóa đơn — {selected}\n'
+            f'📄 Trang {page + 1}/{pages} • {count} hóa đơn\n\n'
+            + ('\n'.join(choices) if choices else 'Không có hóa đơn phù hợp.')
+            + '\nChọn hóa đơn hoặc nhập số hóa đơn.',
+            buttons,
+        )
+
+    def _period_buttons(self):
+        period = fields.Date.context_today(self).strftime('%m/%Y')
+        values = dict(self.values or {})
+        values['current_period'] = period
+        self.values = values
+        return [[f'Kỳ hiện tại ({period})'], ['Hủy']]
 
     def _advance(self, text):
         self.ensure_one()
         readings = self.env['meter.reading']
         values = dict(self.values or {})
+        if self.step in ('invoice_month', 'change_month', 'month'):
+            period = values.get('current_period')
+            if period and text == f'Kỳ hiện tại ({period})':
+                text = period
+        if self.step in ('invoice', 'show_invoice'):
+            filters = ('Chưa trả', 'Quá hạn', 'Đã trả', 'Tất cả')
+            if text in filters:
+                if self.step == 'invoice' and text in ('Đã trả', 'Tất cả'):
+                    raise ValidationError('Chọn Chưa trả hoặc Quá hạn.')
+                values.update({'filter': text, 'page': 0})
+                self.values = values
+                return self._invoice_list()
+            if text in ('Trang trước', 'Trang sau'):
+                values['page'] = values.get('page', 0) + (
+                    1 if text == 'Trang sau' else -1
+                )
+                self.values = values
+                return self._invoice_list()
         if self.step == 'change_invoice':
             number = values.get('invoice_choices', {}).get(text, text)
             invoice = readings._find_telegram_invoice_by_number(number)
@@ -197,8 +376,9 @@ class RoomTelegramSession(models.Model):
                 }
             )
             return self._reply(
-                f'Kỳ hiện tại: {invoice.invoice_month}. Nhập kỳ MM/YYYY.',
-                [['Hủy']],
+                f'Kỳ đang lưu: {invoice.invoice_month}. Nhập kỳ MM/YYYY '
+                'hoặc chọn kỳ hiện tại bên dưới.',
+                self._period_buttons(),
             )
         if self.step in ('correct_date', 'date_reason', 'confirm_date'):
             reading = readings.browse(values['reading_id']).exists()
@@ -287,6 +467,8 @@ class RoomTelegramSession(models.Model):
                 readings._build_telegram_invoice_summary(invoice)
             )
         if self.step == 'room':
+            if text.startswith('🏠 #'):
+                text = text.removeprefix('🏠 ')
             if text.startswith('#'):
                 try:
                     room = (
@@ -303,16 +485,9 @@ class RoomTelegramSession(models.Model):
             values['room_id'] = room.id
             action = values['action']
             if action == 'Hóa đơn':
-                invoices = self.env['room.invoice'].search(
-                    [('room_id', '=', room.id), ('status', '!=', 'canceled')],
-                    limit=10,
-                )
                 self.step = 'show_invoice'
                 self.values = values
-                return self._reply(
-                    'Chọn hóa đơn để xem chi tiết.',
-                    [[inv.invoice_number] for inv in invoices] + [['Hủy']],
-                )
+                return self._invoice_list()
             self.write(
                 {
                     'step': (
@@ -327,7 +502,10 @@ class RoomTelegramSession(models.Model):
                     if self.step == 'month'
                     else 'Nhập chỉ số điện hiện tại.'
                 ),
-                [['Hủy']],
+                (
+                    self._period_buttons()
+                    if self.step == 'month' else [['Hủy']]
+                ),
             )
         if self.step == 'month':
             room = self.env['rental.room'].browse(values['room_id']).exists()
@@ -440,7 +618,7 @@ class RoomTelegramSession(models.Model):
                 return self._reply(
                     'Nhập kỳ tính tiền MM/YYYY (ví dụ 09/2026). '
                     'Kỳ có thể khác tháng ghi chỉ số.',
-                    [['Hủy']],
+                    self._period_buttons(),
                 )
             if self.step == 'invoice_month':
                 values['month'] = (
@@ -484,22 +662,37 @@ class RoomTelegramSession(models.Model):
             result['invoice_id'] = invoice.id
             return result
         if self.step in ('invoice', 'show_invoice'):
-            invoice = readings._find_telegram_invoice_by_number(text)
+            number = values.get('invoice_choices', {}).get(text, text)
+            invoice = readings._find_telegram_invoice_by_number(number)
             if self.step == 'show_invoice':
                 if invoice.room_id.id != values['room_id']:
                     raise ValidationError('Hóa đơn không thuộc phòng đã chọn.')
-                self.step = 'menu'
+                self.step = 'invoice_detail'
                 return self._reply(
-                    readings._build_telegram_invoice_summary(invoice)
+                    readings._build_telegram_invoice_summary(invoice),
+                    [['Hủy']],
                 )
             if invoice.status in ('draft', 'paid', 'canceled'):
                 raise ValidationError('Chọn hóa đơn còn phải thanh toán.')
-            self.write({'step': 'amount', 'values': {'invoice_number': text}})
+            self.write(
+                {'step': 'amount', 'values': {'invoice_number': number}}
+            )
             return self._reply(
-                'Nhập số tiền trả (VND), ví dụ 100000.', [['Hủy']]
+                readings._build_telegram_invoice_summary(invoice)
+                + '\nChọn Trả hết hoặc nhập số tiền trả (VND).',
+                [['Trả hết'], ['Hủy']],
             )
         if self.step == 'amount':
-            amount = readings._parse_telegram_amount(text)
+            if text == 'Trả hết':
+                invoice = readings._find_telegram_invoice_by_number(
+                    values['invoice_number']
+                )
+                if invoice.status in ('draft', 'paid', 'canceled'):
+                    raise ValidationError('Chọn hóa đơn còn phải thanh toán.')
+                amount = invoice.remaining_amount
+                values['pay_full'] = True
+            else:
+                amount = readings._parse_telegram_amount(text)
             if not math.isfinite(amount) or amount <= 0:
                 raise ValidationError('Số tiền phải lớn hơn 0.')
             values['amount'] = amount
@@ -512,9 +705,26 @@ class RoomTelegramSession(models.Model):
         if self.step == 'confirm_payment':
             if text != 'Xác nhận':
                 raise ValidationError('Bấm Xác nhận hoặc Hủy.')
-            result = readings._process_telegram_pay_command(
-                f'pay {values["invoice_number"]} {values["amount"]:.0f}'
-            )
+            if values.get('pay_full'):
+                invoice = readings._find_telegram_invoice_by_number(
+                    values['invoice_number']
+                )
+                invoice._lock_for_payment()
+                if (
+                    invoice.status in ('draft', 'paid')
+                    or invoice.remaining_amount != values['amount']
+                ):
+                    raise ValidationError(
+                        'Số dư hoặc trạng thái hóa đơn đã thay đổi. '
+                        'Chọn Thanh toán để kiểm tra và xác nhận lại.'
+                    )
+                result = readings._process_telegram_paid_command(
+                    f'paid {values["invoice_number"]}'
+                )
+            else:
+                result = readings._process_telegram_pay_command(
+                    f'pay {values["invoice_number"]} {values["amount"]:.0f}'
+                )
             self.step = 'menu'
             result['reply_markup'] = self._reply('')['reply_markup']
             return result

@@ -1,6 +1,4 @@
-import json
 import logging
-from urllib import error, request as urlrequest
 
 from odoo import http
 from odoo.http import request
@@ -66,30 +64,4 @@ class RoomRentalTelegramWebhook(http.Controller):
                 {'ok': False, 'error': 'invalid_update'}, status=400
             )
         result = env['room.telegram.update'].sudo()._process_update(payload)
-        self._send_telegram_reply(
-            token=icp.get_param('room_rental_expense.telegram_bot_token'),
-            chat_id=message.get('chat', {}).get('id'),
-            text=result.get('message'),
-            reply_markup=result.get('reply_markup'),
-        )
         return request.make_json_response(result, status=200)
-
-    def _send_telegram_reply(self, token, chat_id, text, reply_markup=None):
-        if not token or not chat_id or not text:
-            return
-        endpoint = f'https://api.telegram.org/bot{token}/sendMessage'
-        data = {'chat_id': chat_id, 'text': text}
-        if reply_markup:
-            data['reply_markup'] = reply_markup
-        payload = json.dumps(data).encode('utf-8')
-        req = urlrequest.Request(
-            endpoint,
-            data=payload,
-            headers={'Content-Type': 'application/json'},
-            method='POST',
-        )
-        try:
-            with urlrequest.urlopen(req, timeout=10):
-                return
-        except error.URLError:
-            _logger.exception('Failed to send Telegram reply.')
