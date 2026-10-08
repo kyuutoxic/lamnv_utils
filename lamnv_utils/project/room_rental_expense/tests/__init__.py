@@ -3,3 +3,4 @@ from . import test_telegram
 from . import test_meter_reading
 from . import test_telegram_setup
 from . import test_telegram_features
+from . import test_telegram_outbox

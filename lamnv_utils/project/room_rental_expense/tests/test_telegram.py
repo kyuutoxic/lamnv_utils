@@ -201,8 +201,14 @@ class TestTelegramWebhook(HttpCase):
             },
         }
         response = MagicMock()
+        response.__enter__.return_value.read.return_value = b'{"ok": true}'
         with patch('urllib.request.urlopen', return_value=response) as call:
             result = self.post(payload).json()
+            delivery = self.env['room.telegram.outbox'].sudo().search(
+                [('receipt_id.update_id', '=', 300)]
+            )
+            self.assertEqual(len(delivery), 1)
+            delivery._deliver()
         self.assertIn('reply_markup', result)
         sent = json.loads(call.call_args.args[0].data)
         self.assertTrue(sent['reply_markup']['resize_keyboard'])

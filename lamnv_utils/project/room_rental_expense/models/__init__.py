@@ -12,3 +12,4 @@ from . import monthly_summary
 from . import telegram_reminder
 from . import meter_reading_anomaly
 from . import telegram_session
+from . import telegram_outbox

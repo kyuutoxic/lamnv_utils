@@ -1,6 +1,6 @@
 {
     'name': 'Room Rental Expense Management',
-    'version': '19.0.1.3.1',
+    'version': '19.0.1.4.0',
     'category': 'Accounting',
     'summary': 'Personal room rental expense and payment tracking',
     'description': """
@@ -43,6 +43,7 @@
         'views/room_config_views.xml',
         'views/res_config_settings_views.xml',
         'views/monthly_summary_views.xml',
+        'views/telegram_outbox_views.xml',
         'views/room_history_views.xml',
         'views/room_deposit_views.xml',
         'views/room_issue_views.xml',

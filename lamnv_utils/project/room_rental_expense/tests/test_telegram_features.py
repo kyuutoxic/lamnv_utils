@@ -116,6 +116,95 @@ class TestTelegramFeatures(TransactionCase):
         self.send('Xác nhận')
         self.assertFalse(reading.invoice_id)
 
+    def test_current_period_button_for_invoice_and_back(self):
+        self.start_reading()
+        self.send('100')
+        self.send('10')
+        self.send('Hôm nay')
+        saved = self.send('Xác nhận')
+        reading = self.readings.browse(saved['reading_id'])
+        result = self.send('Tạo hóa đơn')
+        period = self.today.strftime('%m/%Y')
+        button = f'Kỳ hiện tại ({period})'
+        self.assertIn(button, str(result['reply_markup']))
+        self.send(button)
+        self.assertFalse(reading.invoice_id)
+        result = self.send('Quay lại')
+        self.assertIn(button, str(result['reply_markup']))
+        self.send(button)
+        self.send('Xác nhận')
+        self.assertEqual(reading.invoice_id.invoice_month, period)
+
+    def test_current_period_button_for_change_and_summary(self):
+        previous = (self.today - relativedelta(months=1)).strftime('%m/%Y')
+        inv = self.invoice(invoice_month=previous)
+        period = self.today.strftime('%m/%Y')
+        button = f'Kỳ hiện tại ({period})'
+        self.send('Đổi kỳ hóa đơn')
+        result = self.send(inv.invoice_number)
+        self.assertIn(button, str(result['reply_markup']))
+        self.send(button)
+        self.send('Chuyển kỳ hiện tại')
+        self.assertEqual(inv.invoice_month, previous)
+        self.send('Xác nhận')
+        self.assertEqual(inv.invoice_month, period)
+        self.send('Tổng kết tháng')
+        result = self.send(f'#{self.room.id} - {self.room.name}')
+        self.assertIn(button, str(result['reply_markup']))
+        result = self.send(button)
+        self.assertIn(f'Tổng kết {period}', result['message'])
+
+    def test_decorated_menu_payment_and_navigation(self):
+        inv = self.invoice()
+        menu = self.send('/menu')
+        keyboard = menu['reply_markup']['keyboard']
+        self.assertEqual(keyboard[0], ['🔢 Ghi chỉ số', '🧾 Hóa đơn'])
+        self.assertEqual(keyboard[1], ['💳 Thanh toán', '📊 Tổng kết tháng'])
+        self.assertIn('PHÒNG TRỌ', menu['message'])
+        result = self.send(keyboard[1][0])
+        result = self.send(result['reply_markup']['keyboard'][0][0])
+        self.assertIn(['⬅️ Quay lại', '❌ Hủy'],
+                      result['reply_markup']['keyboard'])
+        result = self.send('💰 Trả hết')
+        self.assertIn('✅ Xác nhận', str(result['reply_markup']))
+        buttons = [button for row in result['reply_markup']['keyboard']
+                   for button in row]
+        self.assertEqual(buttons.count('❌ Hủy'), 1)
+        self.send('⬅️ Quay lại')
+        self.send('💰 Trả hết')
+        self.send('✅ Xác nhận')
+        self.assertEqual(inv.status, 'paid')
+        self.send('💳 Thanh toán')
+        self.send('❌ Hủy')
+        self.assertEqual(inv.paid_amount, inv.total_amount)
+
+    def test_decorated_room_period_and_filters(self):
+        self.send('🔢 Ghi chỉ số')
+        session = self.env['room.telegram.session'].search(
+            [('chat_id', '=', '123'), ('user_id', '=', '123')]
+        )
+        label = next(
+            row[0] for row in session.last_reply['reply_markup']['keyboard']
+            if row[0].startswith(f'🏠 #{self.room.id} -')
+        )
+        self.send(label)
+        self.send('100')
+        self.send('10')
+        self.send('📅 Hôm nay')
+        self.send('✅ Xác nhận')
+        result = self.send('➕ Tạo hóa đơn')
+        period_button = result['reply_markup']['keyboard'][0][0]
+        self.assertTrue(period_button.startswith('📅 Kỳ hiện tại ('))
+        self.send(period_button)
+        result = self.send('✅ Xác nhận')
+        inv = self.env['room.invoice'].browse(result['invoice_id'])
+        self.assertEqual(inv.invoice_month, self.today.strftime('%m/%Y'))
+        self.send('💳 Thanh toán')
+        result = self.send('🔴 Quá hạn')
+        self.assertIn('Quá hạn', result['message'])
+        result = self.send('🟠 Chưa trả')
+        self.assertIn(inv.invoice_number, result['message'])
+
     def test_change_period_preserves_amounts_and_dates(self):
         inv = self.invoice()
         old = inv.invoice_month
@@ -602,6 +691,139 @@ class TestTelegramFeatures(TransactionCase):
         self.assertEqual(inv.paid_amount, 0)
         self.send('Hủy')
         self.assertEqual(inv.paid_amount, 0)
+
+    def test_payment_full_confirm_and_replay(self):
+        inv = self.invoice()
+        inv.paid_amount = 100000
+        self.send('Thanh toán')
+        result = self.send(inv.invoice_number)
+        self.assertIn('Trả hết', str(result['reply_markup']))
+        result = self.send('Trả hết')
+        self.assertIn(f'{inv.remaining_amount:,.0f}', result['message'])
+        self.assertEqual(inv.paid_amount, 100000)
+        updates = self.env['room.telegram.update'].sudo()
+        payload = {'update_id': 901, 'message': self.message('Xác nhận')}
+        self.assertEqual(updates._process_update(payload)['status'], 'success')
+        self.assertTrue(updates._process_update(payload)['duplicate'])
+        self.assertEqual(inv.paid_amount, inv.total_amount)
+        self.assertEqual(inv.remaining_amount, 0)
+        self.assertEqual(inv.status, 'paid')
+        self.send('Xác nhận')
+        self.assertEqual(inv.paid_amount, inv.total_amount)
+
+    def test_payment_full_cancel(self):
+        inv = self.invoice()
+        self.send('Thanh toán')
+        self.send(inv.invoice_number)
+        self.send('Trả hết')
+        self.send('Hủy')
+        self.send('Xác nhận')
+        self.assertEqual(inv.paid_amount, 0)
+
+    def test_invoice_list_labels_filters_and_pages(self):
+        invoices = [self.invoice() for index in range(9)]
+        overdue = self.env['room.invoice'].create(
+            {'room_id': self.room.id,
+             'invoice_date': self.today - timedelta(days=2),
+             'due_date': self.today - timedelta(days=1)}
+        )
+        overdue.action_confirm()
+        paid = invoices[0]
+        paid.action_paid()
+        self.send('Hóa đơn')
+        result = self.send(f'#{self.room.id} - {self.room.name}')
+        self.assertIn('Trang 1/2', result['message'])
+        label = result['reply_markup']['keyboard'][0][0]
+        self.assertIn(self.room.name, label)
+        self.assertIn('Còn', label)
+        result = self.send('Trang sau')
+        self.assertIn('Trang 2/2', result['message'])
+        result = self.send('Đã trả')
+        self.assertIn(paid.invoice_number, result['message'])
+        self.assertNotIn(overdue.invoice_number, result['message'])
+        result = self.send('Quá hạn')
+        self.assertIn(overdue.invoice_number, result['message'])
+        self.assertNotIn(paid.invoice_number, result['message'])
+        label = result['reply_markup']['keyboard'][0][0]
+        detail = self.send(label)
+        self.assertIn(overdue.invoice_number, detail['message'])
+        result = self.send('Quay lại')
+        self.assertIn('Quá hạn', result['message'])
+        self.assertIn(overdue.invoice_number, result['message'])
+
+    def test_payment_list_label_and_back(self):
+        inv = self.invoice()
+        result = self.send('Thanh toán')
+        label = result['reply_markup']['keyboard'][0][0]
+        result = self.send(label)
+        self.assertIn('Quay lại', str(result['reply_markup']))
+        self.send('Trả hết')
+        self.send('Quay lại')
+        self.send('100000')
+        self.send('Xác nhận')
+        self.assertEqual(inv.paid_amount, 100000)
+        self.send('Quay lại')
+        self.assertEqual(inv.paid_amount, 100000)
+
+    def test_back_reading_keeps_previous_inputs(self):
+        self.start_reading()
+        self.send('100')
+        self.send('10')
+        self.send('Hôm nay')
+        self.send('Quay lại')
+        result = self.send('Quay lại')
+        self.assertIn('Nhập chỉ số nước', result['message'])
+        self.send('12')
+        self.send('Hôm nay')
+        result = self.send('Xác nhận')
+        reading = self.readings.browse(result['reading_id'])
+        self.assertEqual(reading.electric_current, 100)
+        self.assertEqual(reading.water_current, 12)
+        self.send('Quay lại')
+        self.assertTrue(reading.exists())
+
+    def test_back_period_reason_and_cancel(self):
+        inv = self.invoice()
+        original = inv.invoice_month
+        self.send('Đổi kỳ hóa đơn')
+        self.send(inv.invoice_number)
+        self.send('08/2026')
+        self.send('Sai kỳ')
+        self.send('Quay lại')
+        self.send('Sửa lại lý do')
+        self.send('Quay lại')
+        self.send('Quay lại')
+        self.send('07/2026')
+        result = self.send('Lý do mới')
+        self.assertIn('07/2026', result['message'])
+        self.send('Hủy')
+        self.assertEqual(inv.invoice_month, original)
+
+    def test_empty_payment_filter_and_other_room(self):
+        inv = self.invoice()
+        inv.action_paid()
+        result = self.send('Thanh toán')
+        self.assertIn('Không có hóa đơn', result['message'])
+        self.assertEqual(self.send(inv.invoice_number)['status'], 'error')
+        other = self.env['rental.room'].create({'name': 'Other room'})
+        self.send('Hóa đơn')
+        self.send(f'#{other.id} - {other.name}')
+        self.assertEqual(self.send(inv.invoice_number)['status'], 'error')
+
+    def test_payment_full_rechecks_balance_and_canceled(self):
+        inv = self.invoice()
+        self.send('Thanh toán')
+        self.send(inv.invoice_number)
+        self.send('Trả hết')
+        inv.paid_amount = 100000
+        self.assertEqual(self.send('Xác nhận')['status'], 'error')
+        self.assertEqual(inv.paid_amount, 100000)
+        self.send('Thanh toán')
+        self.send(inv.invoice_number)
+        self.send('Trả hết')
+        inv.action_cancel()
+        self.assertEqual(self.send('Xác nhận')['status'], 'error')
+        self.assertEqual(inv.paid_amount, 100000)
 
     def test_anomaly_normalizes_days_and_skips_manual(self):
         for index in range(4):
