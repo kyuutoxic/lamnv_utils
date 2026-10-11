@@ -1,0 +1,107 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo noupdate="1">
+    <record id="lesson_intro" model="english.lesson">
+        <field name="name">Giới thiệu bản thân</field>
+        <field name="sequence">10</field>
+        <field name="question">What is your name?</field>
+        <field name="meaning_vi">Bạn tên là gì?</field>
+        <field name="situation_vi">Khi gặp người mới.</field>
+        <field name="sample_answers">My name is Nam. — Tôi tên là Nam.
+I am Lan. — Tôi là Lan.</field>
+        <field name="vocabulary_vi">name: tên; my: của tôi; your: của bạn.</field>
+        <field name="phrases_vi">My name is ...: Tôi tên là ...</field>
+        <field name="grammar_name">Động từ to be: am / is</field>
+        <field name="grammar_vi">I + am; My name + is. To be dùng để giới thiệu danh tính. I am viết gọn là I'm.</field>
+        <field name="common_mistake_vi">Không viết I is Nam. Với I, dùng am.</field>
+        <field name="exercise">Dịch: Tôi tên là Nam.</field>
+        <field name="answer">My name is Nam.</field>
+        <field name="accepted_answers">My name is Nam
+I am Nam.
+I'm Nam.</field>
+        <field name="answer_explanation_vi">My name is + tên là mẫu giới thiệu tên.</field>
+        <field name="state">ready</field>
+        <field name="level">starter</field>
+    </record>
+    <record id="lesson_need_help" model="english.lesson">
+        <field name="name">Tôi cần giúp đỡ</field>
+        <field name="sequence">20</field>
+        <field name="question">What do you need?</field>
+        <field name="meaning_vi">Bạn cần gì?</field>
+        <field name="situation_vi">Nói về nhu cầu của mình.</field>
+        <field name="sample_answers">I need help. — Tôi cần giúp đỡ.
+I need water. — Tôi cần nước.</field>
+        <field name="vocabulary_vi">need: cần; help: sự giúp đỡ; water: nước.</field>
+        <field name="phrases_vi">need help: cần giúp đỡ; need more time: cần thêm thời gian.</field>
+        <field name="grammar_name">Hiện tại đơn với I</field>
+        <field name="grammar_vi">I + động từ nguyên mẫu. Với I, dùng need, không thêm s. What do you need? dùng do để hỏi nhu cầu.</field>
+        <field name="common_mistake_vi">I needs help là sai. Viết I need help.</field>
+        <field name="exercise">Dịch: Tôi cần giúp đỡ.</field>
+        <field name="answer">I need help.</field>
+        <field name="accepted_answers">I need some help.</field>
+        <field name="answer_explanation_vi">I là chủ ngữ; need là động từ; help là điều bạn cần.</field>
+        <field name="state">ready</field>
+        <field name="level">starter</field>
+    </record>
+    <record id="lesson_doing" model="english.lesson">
+        <field name="name">Bạn đang làm gì?</field>
+        <field name="sequence">30</field>
+        <field name="question">What are you doing?</field>
+        <field name="meaning_vi">Bạn đang làm gì?</field>
+        <field name="situation_vi">Hỏi hoạt động đang diễn ra lúc nói.</field>
+        <field name="sample_answers">I am learning English. — Tôi đang học tiếng Anh.
+I am cooking dinner. — Tôi đang nấu bữa tối.</field>
+        <field name="vocabulary_vi">learn: học; cook: nấu; read: đọc; book: sách.</field>
+        <field name="phrases_vi">learn English: học tiếng Anh; read a book: đọc một cuốn sách.</field>
+        <field name="grammar_name">Hiện tại tiếp diễn</field>
+        <field name="grammar_vi">Chủ ngữ + am/is/are + V-ing. I dùng am, you dùng are. Trong bài này, diễn tả việc đang làm lúc nói.</field>
+        <field name="common_mistake_vi">I learning English thiếu am. Viết I am learning English.</field>
+        <field name="exercise">Dịch: Tôi đang đọc một cuốn sách.</field>
+        <field name="answer">I am reading a book.</field>
+        <field name="accepted_answers">I'm reading a book.</field>
+        <field name="answer_explanation_vi">I + am + reading. Read thêm ing thành reading.</field>
+        <field name="state">ready</field>
+        <field name="level">starter</field>
+    </record>
+    <record id="lesson_dev_help" model="english.lesson">
+        <field name="name">Nhờ kiểm tra lỗi</field>
+        <field name="sequence">10</field>
+        <field name="topic">developer</field>
+        <field name="question">Can you check this bug?</field>
+        <field name="meaning_vi">Bạn có thể kiểm tra lỗi này không?</field>
+        <field name="situation_vi">Nhờ đồng nghiệp giúp kiểm tra một lỗi.</field>
+        <field name="sample_answers">Yes, I can. — Có, tôi có thể.
+I can check it now. — Tôi có thể kiểm tra ngay.</field>
+        <field name="vocabulary_vi">check: kiểm tra; bug: lỗi phần mềm; code: mã nguồn.</field>
+        <field name="phrases_vi">check this bug: kiểm tra lỗi này; help me: giúp tôi.</field>
+        <field name="grammar_name">Can + động từ nguyên mẫu</field>
+        <field name="grammar_vi">Can + chủ ngữ + động từ nguyên mẫu? Sau can dùng check, không dùng checking. Dùng để hỏi khả năng hoặc nhờ ai làm việc gì.</field>
+        <field name="common_mistake_vi">Không viết Can you checking. Viết Can you check.</field>
+        <field name="exercise">Dịch: Bạn có thể giúp tôi không?</field>
+        <field name="answer">Can you help me?</field>
+        <field name="accepted_answers">Can you help me</field>
+        <field name="answer_explanation_vi">Can + you + help + me là lời nhờ giúp đỡ.</field>
+        <field name="state">ready</field>
+        <field name="level">starter</field>
+    </record>
+    <record id="lesson_dev_work" model="english.lesson">
+        <field name="name">Tôi đang sửa lỗi</field>
+        <field name="sequence">20</field>
+        <field name="topic">developer</field>
+        <field name="question">What are you working on?</field>
+        <field name="meaning_vi">Bạn đang làm việc gì?</field>
+        <field name="situation_vi">Cập nhật việc đang làm cho đồng nghiệp.</field>
+        <field name="sample_answers">I am fixing a bug. — Tôi đang sửa một lỗi.
+I am testing the module. — Tôi đang kiểm thử module.</field>
+        <field name="vocabulary_vi">fix: sửa; test: kiểm thử; module: mô-đun.</field>
+        <field name="phrases_vi">fix a bug: sửa một lỗi; work on: làm việc với một nhiệm vụ.</field>
+        <field name="grammar_name">Hiện tại tiếp diễn</field>
+        <field name="grammar_vi">I + am + V-ing. Fix thành fixing, test thành testing. Trong bài này diễn tả công việc đang thực hiện.</field>
+        <field name="common_mistake_vi">I fixing a bug thiếu am.</field>
+        <field name="exercise">Dịch: Tôi đang sửa một lỗi.</field>
+        <field name="answer">I am fixing a bug.</field>
+        <field name="accepted_answers">I'm fixing a bug.</field>
+        <field name="answer_explanation_vi">I am fixing diễn tả tôi đang sửa; a bug là một lỗi.</field>
+        <field name="state">ready</field>
+        <field name="level">starter</field>
+    </record>
+</odoo>

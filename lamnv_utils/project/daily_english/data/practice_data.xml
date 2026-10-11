@@ -1,0 +1,763 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo noupdate="1">
+    <record id="practice_starter_daily_1" model="english.lesson">
+        <field name="name">Tôi cần nước</field>
+        <field name="sequence">41</field>
+        <field name="level">starter</field>
+        <field name="topic">daily</field>
+        <field name="state">ready</field>
+        <field name="question">What do you need?</field>
+        <field name="meaning_vi">Bạn cần gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong đời sống.</field>
+        <field name="sample_answers">I need some food. — Tôi cần một ít đồ ăn.</field>
+        <field name="vocabulary_vi">water: nước; need: cần.</field>
+        <field name="phrases_vi">need water: cần nước.</field>
+        <field name="grammar_name">Hiện tại đơn với need</field>
+        <field name="grammar_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu.</field>
+        <field name="common_mistake_vi">Với I, dùng need, không dùng needs.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi cần nước.</field>
+        <field name="answer">I need water.</field>
+        <field name="answer_explanation_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu. Trong câu này, water nghĩa là nước.</field>
+    </record>
+    <record id="practice_starter_daily_2" model="english.lesson">
+        <field name="name">Tôi cần một ít đồ ăn</field>
+        <field name="sequence">42</field>
+        <field name="level">starter</field>
+        <field name="topic">daily</field>
+        <field name="state">ready</field>
+        <field name="question">What do you need?</field>
+        <field name="meaning_vi">Bạn cần gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong đời sống.</field>
+        <field name="sample_answers">I need a ticket. — Tôi cần một vé.</field>
+        <field name="vocabulary_vi">some food: một ít đồ ăn; need: cần.</field>
+        <field name="phrases_vi">need some food: cần một ít đồ ăn.</field>
+        <field name="grammar_name">Hiện tại đơn với need</field>
+        <field name="grammar_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu.</field>
+        <field name="common_mistake_vi">Với I, dùng need, không dùng needs.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi cần một ít đồ ăn.</field>
+        <field name="answer">I need some food.</field>
+        <field name="answer_explanation_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu. Trong câu này, some food nghĩa là một ít đồ ăn.</field>
+    </record>
+    <record id="practice_starter_daily_3" model="english.lesson">
+        <field name="name">Tôi cần một vé</field>
+        <field name="sequence">43</field>
+        <field name="level">starter</field>
+        <field name="topic">daily</field>
+        <field name="state">ready</field>
+        <field name="question">What do you need?</field>
+        <field name="meaning_vi">Bạn cần gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong đời sống.</field>
+        <field name="sample_answers">I need a map. — Tôi cần một bản đồ.</field>
+        <field name="vocabulary_vi">a ticket: một vé; need: cần.</field>
+        <field name="phrases_vi">need a ticket: cần một vé.</field>
+        <field name="grammar_name">Hiện tại đơn với need</field>
+        <field name="grammar_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu.</field>
+        <field name="common_mistake_vi">Với I, dùng need, không dùng needs.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi cần một vé.</field>
+        <field name="answer">I need a ticket.</field>
+        <field name="answer_explanation_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu. Trong câu này, a ticket nghĩa là một vé.</field>
+    </record>
+    <record id="practice_starter_daily_4" model="english.lesson">
+        <field name="name">Tôi cần một bản đồ</field>
+        <field name="sequence">44</field>
+        <field name="level">starter</field>
+        <field name="topic">daily</field>
+        <field name="state">ready</field>
+        <field name="question">What do you need?</field>
+        <field name="meaning_vi">Bạn cần gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong đời sống.</field>
+        <field name="sample_answers">I need some help. — Tôi cần một chút giúp đỡ.</field>
+        <field name="vocabulary_vi">a map: một bản đồ; need: cần.</field>
+        <field name="phrases_vi">need a map: cần một bản đồ.</field>
+        <field name="grammar_name">Hiện tại đơn với need</field>
+        <field name="grammar_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu.</field>
+        <field name="common_mistake_vi">Với I, dùng need, không dùng needs.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi cần một bản đồ.</field>
+        <field name="answer">I need a map.</field>
+        <field name="answer_explanation_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu. Trong câu này, a map nghĩa là một bản đồ.</field>
+    </record>
+    <record id="practice_starter_daily_5" model="english.lesson">
+        <field name="name">Tôi cần một chút giúp đỡ</field>
+        <field name="sequence">45</field>
+        <field name="level">starter</field>
+        <field name="topic">daily</field>
+        <field name="state">ready</field>
+        <field name="question">What do you need?</field>
+        <field name="meaning_vi">Bạn cần gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong đời sống.</field>
+        <field name="sample_answers">I need water. — Tôi cần nước.</field>
+        <field name="vocabulary_vi">some help: một chút giúp đỡ; need: cần.</field>
+        <field name="phrases_vi">need some help: cần một chút giúp đỡ.</field>
+        <field name="grammar_name">Hiện tại đơn với need</field>
+        <field name="grammar_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu.</field>
+        <field name="common_mistake_vi">Với I, dùng need, không dùng needs.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi cần một chút giúp đỡ.</field>
+        <field name="answer">I need some help.</field>
+        <field name="answer_explanation_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu. Trong câu này, some help nghĩa là một chút giúp đỡ.</field>
+    </record>
+    <record id="practice_starter_daily_6" model="english.lesson">
+        <field name="name">Tôi có thể nấu ăn</field>
+        <field name="sequence">46</field>
+        <field name="level">starter</field>
+        <field name="topic">daily</field>
+        <field name="state">ready</field>
+        <field name="question">What can you do?</field>
+        <field name="meaning_vi">Bạn có thể làm gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong đời sống.</field>
+        <field name="sample_answers">I can swim. — Tôi có thể bơi.</field>
+        <field name="vocabulary_vi">cook: nấu ăn; can: có thể.</field>
+        <field name="phrases_vi">can cook: có thể nấu ăn.</field>
+        <field name="grammar_name">Động từ khuyết thiếu can</field>
+        <field name="grammar_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng.</field>
+        <field name="common_mistake_vi">Sau can không thêm to hoặc -ing vào động từ.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi có thể nấu ăn.</field>
+        <field name="answer">I can cook.</field>
+        <field name="answer_explanation_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng. Trong câu này, cook nghĩa là nấu ăn.</field>
+    </record>
+    <record id="practice_starter_daily_7" model="english.lesson">
+        <field name="name">Tôi có thể bơi</field>
+        <field name="sequence">47</field>
+        <field name="level">starter</field>
+        <field name="topic">daily</field>
+        <field name="state">ready</field>
+        <field name="question">What can you do?</field>
+        <field name="meaning_vi">Bạn có thể làm gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong đời sống.</field>
+        <field name="sample_answers">I can drive. — Tôi có thể lái xe.</field>
+        <field name="vocabulary_vi">swim: bơi; can: có thể.</field>
+        <field name="phrases_vi">can swim: có thể bơi.</field>
+        <field name="grammar_name">Động từ khuyết thiếu can</field>
+        <field name="grammar_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng.</field>
+        <field name="common_mistake_vi">Sau can không thêm to hoặc -ing vào động từ.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi có thể bơi.</field>
+        <field name="answer">I can swim.</field>
+        <field name="answer_explanation_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng. Trong câu này, swim nghĩa là bơi.</field>
+    </record>
+    <record id="practice_starter_daily_8" model="english.lesson">
+        <field name="name">Tôi có thể lái xe</field>
+        <field name="sequence">48</field>
+        <field name="level">starter</field>
+        <field name="topic">daily</field>
+        <field name="state">ready</field>
+        <field name="question">What can you do?</field>
+        <field name="meaning_vi">Bạn có thể làm gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong đời sống.</field>
+        <field name="sample_answers">I can read English. — Tôi có thể đọc tiếng Anh.</field>
+        <field name="vocabulary_vi">drive: lái xe; can: có thể.</field>
+        <field name="phrases_vi">can drive: có thể lái xe.</field>
+        <field name="grammar_name">Động từ khuyết thiếu can</field>
+        <field name="grammar_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng.</field>
+        <field name="common_mistake_vi">Sau can không thêm to hoặc -ing vào động từ.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi có thể lái xe.</field>
+        <field name="answer">I can drive.</field>
+        <field name="answer_explanation_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng. Trong câu này, drive nghĩa là lái xe.</field>
+    </record>
+    <record id="practice_starter_daily_9" model="english.lesson">
+        <field name="name">Tôi có thể đọc tiếng Anh</field>
+        <field name="sequence">49</field>
+        <field name="level">starter</field>
+        <field name="topic">daily</field>
+        <field name="state">ready</field>
+        <field name="question">What can you do?</field>
+        <field name="meaning_vi">Bạn có thể làm gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong đời sống.</field>
+        <field name="sample_answers">I can help you. — Tôi có thể giúp bạn.</field>
+        <field name="vocabulary_vi">read English: đọc tiếng Anh; can: có thể.</field>
+        <field name="phrases_vi">can read English: có thể đọc tiếng Anh.</field>
+        <field name="grammar_name">Động từ khuyết thiếu can</field>
+        <field name="grammar_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng.</field>
+        <field name="common_mistake_vi">Sau can không thêm to hoặc -ing vào động từ.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi có thể đọc tiếng Anh.</field>
+        <field name="answer">I can read English.</field>
+        <field name="answer_explanation_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng. Trong câu này, read English nghĩa là đọc tiếng Anh.</field>
+    </record>
+    <record id="practice_starter_daily_10" model="english.lesson">
+        <field name="name">Tôi có thể giúp bạn</field>
+        <field name="sequence">50</field>
+        <field name="level">starter</field>
+        <field name="topic">daily</field>
+        <field name="state">ready</field>
+        <field name="question">What can you do?</field>
+        <field name="meaning_vi">Bạn có thể làm gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong đời sống.</field>
+        <field name="sample_answers">I can cook. — Tôi có thể nấu ăn.</field>
+        <field name="vocabulary_vi">help you: giúp bạn; can: có thể.</field>
+        <field name="phrases_vi">can help you: có thể giúp bạn.</field>
+        <field name="grammar_name">Động từ khuyết thiếu can</field>
+        <field name="grammar_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng.</field>
+        <field name="common_mistake_vi">Sau can không thêm to hoặc -ing vào động từ.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi có thể giúp bạn.</field>
+        <field name="answer">I can help you.</field>
+        <field name="answer_explanation_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng. Trong câu này, help you nghĩa là giúp bạn.</field>
+    </record>
+    <record id="practice_starter_developer_1" model="english.lesson">
+        <field name="name">Tôi cần một tài khoản thử nghiệm</field>
+        <field name="sequence">41</field>
+        <field name="level">starter</field>
+        <field name="topic">developer</field>
+        <field name="state">ready</field>
+        <field name="question">What do you need?</field>
+        <field name="meaning_vi">Bạn cần gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong công việc lập trình.</field>
+        <field name="sample_answers">I need more time. — Tôi cần thêm thời gian.</field>
+        <field name="vocabulary_vi">a test account: một tài khoản thử nghiệm; need: cần.</field>
+        <field name="phrases_vi">need a test account: cần một tài khoản thử nghiệm.</field>
+        <field name="grammar_name">Hiện tại đơn với need</field>
+        <field name="grammar_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu.</field>
+        <field name="common_mistake_vi">Với I, dùng need, không dùng needs.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi cần một tài khoản thử nghiệm.</field>
+        <field name="answer">I need a test account.</field>
+        <field name="answer_explanation_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu. Trong câu này, a test account nghĩa là một tài khoản thử nghiệm.</field>
+    </record>
+    <record id="practice_starter_developer_2" model="english.lesson">
+        <field name="name">Tôi cần thêm thời gian</field>
+        <field name="sequence">42</field>
+        <field name="level">starter</field>
+        <field name="topic">developer</field>
+        <field name="state">ready</field>
+        <field name="question">What do you need?</field>
+        <field name="meaning_vi">Bạn cần gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong công việc lập trình.</field>
+        <field name="sample_answers">I need the error message. — Tôi cần thông báo lỗi.</field>
+        <field name="vocabulary_vi">more time: thêm thời gian; need: cần.</field>
+        <field name="phrases_vi">need more time: cần thêm thời gian.</field>
+        <field name="grammar_name">Hiện tại đơn với need</field>
+        <field name="grammar_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu.</field>
+        <field name="common_mistake_vi">Với I, dùng need, không dùng needs.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi cần thêm thời gian.</field>
+        <field name="answer">I need more time.</field>
+        <field name="answer_explanation_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu. Trong câu này, more time nghĩa là thêm thời gian.</field>
+    </record>
+    <record id="practice_starter_developer_3" model="english.lesson">
+        <field name="name">Tôi cần thông báo lỗi</field>
+        <field name="sequence">43</field>
+        <field name="level">starter</field>
+        <field name="topic">developer</field>
+        <field name="state">ready</field>
+        <field name="question">What do you need?</field>
+        <field name="meaning_vi">Bạn cần gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong công việc lập trình.</field>
+        <field name="sample_answers">I need a database backup. — Tôi cần một bản sao lưu cơ sở dữ liệu.</field>
+        <field name="vocabulary_vi">the error message: thông báo lỗi; need: cần.</field>
+        <field name="phrases_vi">need the error message: cần thông báo lỗi.</field>
+        <field name="grammar_name">Hiện tại đơn với need</field>
+        <field name="grammar_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu.</field>
+        <field name="common_mistake_vi">Với I, dùng need, không dùng needs.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi cần thông báo lỗi.</field>
+        <field name="answer">I need the error message.</field>
+        <field name="answer_explanation_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu. Trong câu này, the error message nghĩa là thông báo lỗi.</field>
+    </record>
+    <record id="practice_starter_developer_4" model="english.lesson">
+        <field name="name">Tôi cần một bản sao lưu cơ sở dữ liệu</field>
+        <field name="sequence">44</field>
+        <field name="level">starter</field>
+        <field name="topic">developer</field>
+        <field name="state">ready</field>
+        <field name="question">What do you need?</field>
+        <field name="meaning_vi">Bạn cần gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong công việc lập trình.</field>
+        <field name="sample_answers">I need your feedback. — Tôi cần ý kiến của bạn.</field>
+        <field name="vocabulary_vi">a database backup: một bản sao lưu cơ sở dữ liệu; need: cần.</field>
+        <field name="phrases_vi">need a database backup: cần một bản sao lưu cơ sở dữ liệu.</field>
+        <field name="grammar_name">Hiện tại đơn với need</field>
+        <field name="grammar_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu.</field>
+        <field name="common_mistake_vi">Với I, dùng need, không dùng needs.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi cần một bản sao lưu cơ sở dữ liệu.</field>
+        <field name="answer">I need a database backup.</field>
+        <field name="answer_explanation_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu. Trong câu này, a database backup nghĩa là một bản sao lưu cơ sở dữ liệu.</field>
+    </record>
+    <record id="practice_starter_developer_5" model="english.lesson">
+        <field name="name">Tôi cần ý kiến của bạn</field>
+        <field name="sequence">45</field>
+        <field name="level">starter</field>
+        <field name="topic">developer</field>
+        <field name="state">ready</field>
+        <field name="question">What do you need?</field>
+        <field name="meaning_vi">Bạn cần gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong công việc lập trình.</field>
+        <field name="sample_answers">I need a test account. — Tôi cần một tài khoản thử nghiệm.</field>
+        <field name="vocabulary_vi">your feedback: ý kiến của bạn; need: cần.</field>
+        <field name="phrases_vi">need your feedback: cần ý kiến của bạn.</field>
+        <field name="grammar_name">Hiện tại đơn với need</field>
+        <field name="grammar_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu.</field>
+        <field name="common_mistake_vi">Với I, dùng need, không dùng needs.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi cần ý kiến của bạn.</field>
+        <field name="answer">I need your feedback.</field>
+        <field name="answer_explanation_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu. Trong câu này, your feedback nghĩa là ý kiến của bạn.</field>
+    </record>
+    <record id="practice_starter_developer_6" model="english.lesson">
+        <field name="name">Tôi có thể sửa lỗi này</field>
+        <field name="sequence">46</field>
+        <field name="level">starter</field>
+        <field name="topic">developer</field>
+        <field name="state">ready</field>
+        <field name="question">What can you do?</field>
+        <field name="meaning_vi">Bạn có thể làm gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong công việc lập trình.</field>
+        <field name="sample_answers">I can test this module. — Tôi có thể kiểm thử mô-đun này.</field>
+        <field name="vocabulary_vi">fix this bug: sửa lỗi này; can: có thể.</field>
+        <field name="phrases_vi">can fix this bug: có thể sửa lỗi này.</field>
+        <field name="grammar_name">Động từ khuyết thiếu can</field>
+        <field name="grammar_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng.</field>
+        <field name="common_mistake_vi">Sau can không thêm to hoặc -ing vào động từ.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi có thể sửa lỗi này.</field>
+        <field name="answer">I can fix this bug.</field>
+        <field name="answer_explanation_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng. Trong câu này, fix this bug nghĩa là sửa lỗi này.</field>
+    </record>
+    <record id="practice_starter_developer_7" model="english.lesson">
+        <field name="name">Tôi có thể kiểm thử mô-đun này</field>
+        <field name="sequence">47</field>
+        <field name="level">starter</field>
+        <field name="topic">developer</field>
+        <field name="state">ready</field>
+        <field name="question">What can you do?</field>
+        <field name="meaning_vi">Bạn có thể làm gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong công việc lập trình.</field>
+        <field name="sample_answers">I can review your code. — Tôi có thể xem xét mã của bạn.</field>
+        <field name="vocabulary_vi">test this module: kiểm thử mô-đun này; can: có thể.</field>
+        <field name="phrases_vi">can test this module: có thể kiểm thử mô-đun này.</field>
+        <field name="grammar_name">Động từ khuyết thiếu can</field>
+        <field name="grammar_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng.</field>
+        <field name="common_mistake_vi">Sau can không thêm to hoặc -ing vào động từ.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi có thể kiểm thử mô-đun này.</field>
+        <field name="answer">I can test this module.</field>
+        <field name="answer_explanation_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng. Trong câu này, test this module nghĩa là kiểm thử mô-đun này.</field>
+    </record>
+    <record id="practice_starter_developer_8" model="english.lesson">
+        <field name="name">Tôi có thể xem xét mã của bạn</field>
+        <field name="sequence">48</field>
+        <field name="level">starter</field>
+        <field name="topic">developer</field>
+        <field name="state">ready</field>
+        <field name="question">What can you do?</field>
+        <field name="meaning_vi">Bạn có thể làm gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong công việc lập trình.</field>
+        <field name="sample_answers">I can update the documentation. — Tôi có thể cập nhật tài liệu.</field>
+        <field name="vocabulary_vi">review your code: xem xét mã của bạn; can: có thể.</field>
+        <field name="phrases_vi">can review your code: có thể xem xét mã của bạn.</field>
+        <field name="grammar_name">Động từ khuyết thiếu can</field>
+        <field name="grammar_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng.</field>
+        <field name="common_mistake_vi">Sau can không thêm to hoặc -ing vào động từ.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi có thể xem xét mã của bạn.</field>
+        <field name="answer">I can review your code.</field>
+        <field name="answer_explanation_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng. Trong câu này, review your code nghĩa là xem xét mã của bạn.</field>
+    </record>
+    <record id="practice_starter_developer_9" model="english.lesson">
+        <field name="name">Tôi có thể cập nhật tài liệu</field>
+        <field name="sequence">49</field>
+        <field name="level">starter</field>
+        <field name="topic">developer</field>
+        <field name="state">ready</field>
+        <field name="question">What can you do?</field>
+        <field name="meaning_vi">Bạn có thể làm gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong công việc lập trình.</field>
+        <field name="sample_answers">I can deploy the update. — Tôi có thể triển khai bản cập nhật.</field>
+        <field name="vocabulary_vi">update the documentation: cập nhật tài liệu; can: có thể.</field>
+        <field name="phrases_vi">can update the documentation: có thể cập nhật tài liệu.</field>
+        <field name="grammar_name">Động từ khuyết thiếu can</field>
+        <field name="grammar_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng.</field>
+        <field name="common_mistake_vi">Sau can không thêm to hoặc -ing vào động từ.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi có thể cập nhật tài liệu.</field>
+        <field name="answer">I can update the documentation.</field>
+        <field name="answer_explanation_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng. Trong câu này, update the documentation nghĩa là cập nhật tài liệu.</field>
+    </record>
+    <record id="practice_starter_developer_10" model="english.lesson">
+        <field name="name">Tôi có thể triển khai bản cập nhật</field>
+        <field name="sequence">50</field>
+        <field name="level">starter</field>
+        <field name="topic">developer</field>
+        <field name="state">ready</field>
+        <field name="question">What can you do?</field>
+        <field name="meaning_vi">Bạn có thể làm gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong công việc lập trình.</field>
+        <field name="sample_answers">I can fix this bug. — Tôi có thể sửa lỗi này.</field>
+        <field name="vocabulary_vi">deploy the update: triển khai bản cập nhật; can: có thể.</field>
+        <field name="phrases_vi">can deploy the update: có thể triển khai bản cập nhật.</field>
+        <field name="grammar_name">Động từ khuyết thiếu can</field>
+        <field name="grammar_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng.</field>
+        <field name="common_mistake_vi">Sau can không thêm to hoặc -ing vào động từ.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi có thể triển khai bản cập nhật.</field>
+        <field name="answer">I can deploy the update.</field>
+        <field name="answer_explanation_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng. Trong câu này, deploy the update nghĩa là triển khai bản cập nhật.</field>
+    </record>
+    <record id="practice_beginner_daily_1" model="english.lesson">
+        <field name="name">Tôi cần nước</field>
+        <field name="sequence">41</field>
+        <field name="level">beginner</field>
+        <field name="topic">daily</field>
+        <field name="state">ready</field>
+        <field name="question">What do you need?</field>
+        <field name="meaning_vi">Bạn cần gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong đời sống.</field>
+        <field name="sample_answers">I need some food. — Tôi cần một ít đồ ăn.</field>
+        <field name="vocabulary_vi">water: nước; need: cần.</field>
+        <field name="phrases_vi">need water: cần nước.</field>
+        <field name="grammar_name">Hiện tại đơn với need</field>
+        <field name="grammar_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu.</field>
+        <field name="common_mistake_vi">Với I, dùng need, không dùng needs.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi cần nước.</field>
+        <field name="answer">I need water.</field>
+        <field name="answer_explanation_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu. Trong câu này, water nghĩa là nước.</field>
+    </record>
+    <record id="practice_beginner_daily_2" model="english.lesson">
+        <field name="name">Tôi cần một ít đồ ăn</field>
+        <field name="sequence">42</field>
+        <field name="level">beginner</field>
+        <field name="topic">daily</field>
+        <field name="state">ready</field>
+        <field name="question">What do you need?</field>
+        <field name="meaning_vi">Bạn cần gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong đời sống.</field>
+        <field name="sample_answers">I need a ticket. — Tôi cần một vé.</field>
+        <field name="vocabulary_vi">some food: một ít đồ ăn; need: cần.</field>
+        <field name="phrases_vi">need some food: cần một ít đồ ăn.</field>
+        <field name="grammar_name">Hiện tại đơn với need</field>
+        <field name="grammar_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu.</field>
+        <field name="common_mistake_vi">Với I, dùng need, không dùng needs.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi cần một ít đồ ăn.</field>
+        <field name="answer">I need some food.</field>
+        <field name="answer_explanation_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu. Trong câu này, some food nghĩa là một ít đồ ăn.</field>
+    </record>
+    <record id="practice_beginner_daily_3" model="english.lesson">
+        <field name="name">Tôi cần một vé</field>
+        <field name="sequence">43</field>
+        <field name="level">beginner</field>
+        <field name="topic">daily</field>
+        <field name="state">ready</field>
+        <field name="question">What do you need?</field>
+        <field name="meaning_vi">Bạn cần gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong đời sống.</field>
+        <field name="sample_answers">I need a map. — Tôi cần một bản đồ.</field>
+        <field name="vocabulary_vi">a ticket: một vé; need: cần.</field>
+        <field name="phrases_vi">need a ticket: cần một vé.</field>
+        <field name="grammar_name">Hiện tại đơn với need</field>
+        <field name="grammar_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu.</field>
+        <field name="common_mistake_vi">Với I, dùng need, không dùng needs.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi cần một vé.</field>
+        <field name="answer">I need a ticket.</field>
+        <field name="answer_explanation_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu. Trong câu này, a ticket nghĩa là một vé.</field>
+    </record>
+    <record id="practice_beginner_daily_4" model="english.lesson">
+        <field name="name">Tôi cần một bản đồ</field>
+        <field name="sequence">44</field>
+        <field name="level">beginner</field>
+        <field name="topic">daily</field>
+        <field name="state">ready</field>
+        <field name="question">What do you need?</field>
+        <field name="meaning_vi">Bạn cần gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong đời sống.</field>
+        <field name="sample_answers">I need some help. — Tôi cần một chút giúp đỡ.</field>
+        <field name="vocabulary_vi">a map: một bản đồ; need: cần.</field>
+        <field name="phrases_vi">need a map: cần một bản đồ.</field>
+        <field name="grammar_name">Hiện tại đơn với need</field>
+        <field name="grammar_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu.</field>
+        <field name="common_mistake_vi">Với I, dùng need, không dùng needs.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi cần một bản đồ.</field>
+        <field name="answer">I need a map.</field>
+        <field name="answer_explanation_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu. Trong câu này, a map nghĩa là một bản đồ.</field>
+    </record>
+    <record id="practice_beginner_daily_5" model="english.lesson">
+        <field name="name">Tôi cần một chút giúp đỡ</field>
+        <field name="sequence">45</field>
+        <field name="level">beginner</field>
+        <field name="topic">daily</field>
+        <field name="state">ready</field>
+        <field name="question">What do you need?</field>
+        <field name="meaning_vi">Bạn cần gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong đời sống.</field>
+        <field name="sample_answers">I need water. — Tôi cần nước.</field>
+        <field name="vocabulary_vi">some help: một chút giúp đỡ; need: cần.</field>
+        <field name="phrases_vi">need some help: cần một chút giúp đỡ.</field>
+        <field name="grammar_name">Hiện tại đơn với need</field>
+        <field name="grammar_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu.</field>
+        <field name="common_mistake_vi">Với I, dùng need, không dùng needs.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi cần một chút giúp đỡ.</field>
+        <field name="answer">I need some help.</field>
+        <field name="answer_explanation_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu. Trong câu này, some help nghĩa là một chút giúp đỡ.</field>
+    </record>
+    <record id="practice_beginner_daily_6" model="english.lesson">
+        <field name="name">Tôi có thể nấu ăn</field>
+        <field name="sequence">46</field>
+        <field name="level">beginner</field>
+        <field name="topic">daily</field>
+        <field name="state">ready</field>
+        <field name="question">What can you do?</field>
+        <field name="meaning_vi">Bạn có thể làm gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong đời sống.</field>
+        <field name="sample_answers">I can swim. — Tôi có thể bơi.</field>
+        <field name="vocabulary_vi">cook: nấu ăn; can: có thể.</field>
+        <field name="phrases_vi">can cook: có thể nấu ăn.</field>
+        <field name="grammar_name">Động từ khuyết thiếu can</field>
+        <field name="grammar_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng.</field>
+        <field name="common_mistake_vi">Sau can không thêm to hoặc -ing vào động từ.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi có thể nấu ăn.</field>
+        <field name="answer">I can cook.</field>
+        <field name="answer_explanation_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng. Trong câu này, cook nghĩa là nấu ăn.</field>
+    </record>
+    <record id="practice_beginner_daily_7" model="english.lesson">
+        <field name="name">Tôi có thể bơi</field>
+        <field name="sequence">47</field>
+        <field name="level">beginner</field>
+        <field name="topic">daily</field>
+        <field name="state">ready</field>
+        <field name="question">What can you do?</field>
+        <field name="meaning_vi">Bạn có thể làm gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong đời sống.</field>
+        <field name="sample_answers">I can drive. — Tôi có thể lái xe.</field>
+        <field name="vocabulary_vi">swim: bơi; can: có thể.</field>
+        <field name="phrases_vi">can swim: có thể bơi.</field>
+        <field name="grammar_name">Động từ khuyết thiếu can</field>
+        <field name="grammar_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng.</field>
+        <field name="common_mistake_vi">Sau can không thêm to hoặc -ing vào động từ.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi có thể bơi.</field>
+        <field name="answer">I can swim.</field>
+        <field name="answer_explanation_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng. Trong câu này, swim nghĩa là bơi.</field>
+    </record>
+    <record id="practice_beginner_daily_8" model="english.lesson">
+        <field name="name">Tôi có thể lái xe</field>
+        <field name="sequence">48</field>
+        <field name="level">beginner</field>
+        <field name="topic">daily</field>
+        <field name="state">ready</field>
+        <field name="question">What can you do?</field>
+        <field name="meaning_vi">Bạn có thể làm gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong đời sống.</field>
+        <field name="sample_answers">I can read English. — Tôi có thể đọc tiếng Anh.</field>
+        <field name="vocabulary_vi">drive: lái xe; can: có thể.</field>
+        <field name="phrases_vi">can drive: có thể lái xe.</field>
+        <field name="grammar_name">Động từ khuyết thiếu can</field>
+        <field name="grammar_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng.</field>
+        <field name="common_mistake_vi">Sau can không thêm to hoặc -ing vào động từ.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi có thể lái xe.</field>
+        <field name="answer">I can drive.</field>
+        <field name="answer_explanation_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng. Trong câu này, drive nghĩa là lái xe.</field>
+    </record>
+    <record id="practice_beginner_daily_9" model="english.lesson">
+        <field name="name">Tôi có thể đọc tiếng Anh</field>
+        <field name="sequence">49</field>
+        <field name="level">beginner</field>
+        <field name="topic">daily</field>
+        <field name="state">ready</field>
+        <field name="question">What can you do?</field>
+        <field name="meaning_vi">Bạn có thể làm gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong đời sống.</field>
+        <field name="sample_answers">I can help you. — Tôi có thể giúp bạn.</field>
+        <field name="vocabulary_vi">read English: đọc tiếng Anh; can: có thể.</field>
+        <field name="phrases_vi">can read English: có thể đọc tiếng Anh.</field>
+        <field name="grammar_name">Động từ khuyết thiếu can</field>
+        <field name="grammar_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng.</field>
+        <field name="common_mistake_vi">Sau can không thêm to hoặc -ing vào động từ.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi có thể đọc tiếng Anh.</field>
+        <field name="answer">I can read English.</field>
+        <field name="answer_explanation_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng. Trong câu này, read English nghĩa là đọc tiếng Anh.</field>
+    </record>
+    <record id="practice_beginner_daily_10" model="english.lesson">
+        <field name="name">Tôi có thể giúp bạn</field>
+        <field name="sequence">50</field>
+        <field name="level">beginner</field>
+        <field name="topic">daily</field>
+        <field name="state">ready</field>
+        <field name="question">What can you do?</field>
+        <field name="meaning_vi">Bạn có thể làm gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong đời sống.</field>
+        <field name="sample_answers">I can cook. — Tôi có thể nấu ăn.</field>
+        <field name="vocabulary_vi">help you: giúp bạn; can: có thể.</field>
+        <field name="phrases_vi">can help you: có thể giúp bạn.</field>
+        <field name="grammar_name">Động từ khuyết thiếu can</field>
+        <field name="grammar_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng.</field>
+        <field name="common_mistake_vi">Sau can không thêm to hoặc -ing vào động từ.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi có thể giúp bạn.</field>
+        <field name="answer">I can help you.</field>
+        <field name="answer_explanation_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng. Trong câu này, help you nghĩa là giúp bạn.</field>
+    </record>
+    <record id="practice_beginner_developer_1" model="english.lesson">
+        <field name="name">Tôi cần một tài khoản thử nghiệm</field>
+        <field name="sequence">41</field>
+        <field name="level">beginner</field>
+        <field name="topic">developer</field>
+        <field name="state">ready</field>
+        <field name="question">What do you need?</field>
+        <field name="meaning_vi">Bạn cần gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong công việc lập trình.</field>
+        <field name="sample_answers">I need more time. — Tôi cần thêm thời gian.</field>
+        <field name="vocabulary_vi">a test account: một tài khoản thử nghiệm; need: cần.</field>
+        <field name="phrases_vi">need a test account: cần một tài khoản thử nghiệm.</field>
+        <field name="grammar_name">Hiện tại đơn với need</field>
+        <field name="grammar_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu.</field>
+        <field name="common_mistake_vi">Với I, dùng need, không dùng needs.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi cần một tài khoản thử nghiệm.</field>
+        <field name="answer">I need a test account.</field>
+        <field name="answer_explanation_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu. Trong câu này, a test account nghĩa là một tài khoản thử nghiệm.</field>
+    </record>
+    <record id="practice_beginner_developer_2" model="english.lesson">
+        <field name="name">Tôi cần thêm thời gian</field>
+        <field name="sequence">42</field>
+        <field name="level">beginner</field>
+        <field name="topic">developer</field>
+        <field name="state">ready</field>
+        <field name="question">What do you need?</field>
+        <field name="meaning_vi">Bạn cần gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong công việc lập trình.</field>
+        <field name="sample_answers">I need the error message. — Tôi cần thông báo lỗi.</field>
+        <field name="vocabulary_vi">more time: thêm thời gian; need: cần.</field>
+        <field name="phrases_vi">need more time: cần thêm thời gian.</field>
+        <field name="grammar_name">Hiện tại đơn với need</field>
+        <field name="grammar_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu.</field>
+        <field name="common_mistake_vi">Với I, dùng need, không dùng needs.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi cần thêm thời gian.</field>
+        <field name="answer">I need more time.</field>
+        <field name="answer_explanation_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu. Trong câu này, more time nghĩa là thêm thời gian.</field>
+    </record>
+    <record id="practice_beginner_developer_3" model="english.lesson">
+        <field name="name">Tôi cần thông báo lỗi</field>
+        <field name="sequence">43</field>
+        <field name="level">beginner</field>
+        <field name="topic">developer</field>
+        <field name="state">ready</field>
+        <field name="question">What do you need?</field>
+        <field name="meaning_vi">Bạn cần gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong công việc lập trình.</field>
+        <field name="sample_answers">I need a database backup. — Tôi cần một bản sao lưu cơ sở dữ liệu.</field>
+        <field name="vocabulary_vi">the error message: thông báo lỗi; need: cần.</field>
+        <field name="phrases_vi">need the error message: cần thông báo lỗi.</field>
+        <field name="grammar_name">Hiện tại đơn với need</field>
+        <field name="grammar_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu.</field>
+        <field name="common_mistake_vi">Với I, dùng need, không dùng needs.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi cần thông báo lỗi.</field>
+        <field name="answer">I need the error message.</field>
+        <field name="answer_explanation_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu. Trong câu này, the error message nghĩa là thông báo lỗi.</field>
+    </record>
+    <record id="practice_beginner_developer_4" model="english.lesson">
+        <field name="name">Tôi cần một bản sao lưu cơ sở dữ liệu</field>
+        <field name="sequence">44</field>
+        <field name="level">beginner</field>
+        <field name="topic">developer</field>
+        <field name="state">ready</field>
+        <field name="question">What do you need?</field>
+        <field name="meaning_vi">Bạn cần gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong công việc lập trình.</field>
+        <field name="sample_answers">I need your feedback. — Tôi cần ý kiến của bạn.</field>
+        <field name="vocabulary_vi">a database backup: một bản sao lưu cơ sở dữ liệu; need: cần.</field>
+        <field name="phrases_vi">need a database backup: cần một bản sao lưu cơ sở dữ liệu.</field>
+        <field name="grammar_name">Hiện tại đơn với need</field>
+        <field name="grammar_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu.</field>
+        <field name="common_mistake_vi">Với I, dùng need, không dùng needs.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi cần một bản sao lưu cơ sở dữ liệu.</field>
+        <field name="answer">I need a database backup.</field>
+        <field name="answer_explanation_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu. Trong câu này, a database backup nghĩa là một bản sao lưu cơ sở dữ liệu.</field>
+    </record>
+    <record id="practice_beginner_developer_5" model="english.lesson">
+        <field name="name">Tôi cần ý kiến của bạn</field>
+        <field name="sequence">45</field>
+        <field name="level">beginner</field>
+        <field name="topic">developer</field>
+        <field name="state">ready</field>
+        <field name="question">What do you need?</field>
+        <field name="meaning_vi">Bạn cần gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong công việc lập trình.</field>
+        <field name="sample_answers">I need a test account. — Tôi cần một tài khoản thử nghiệm.</field>
+        <field name="vocabulary_vi">your feedback: ý kiến của bạn; need: cần.</field>
+        <field name="phrases_vi">need your feedback: cần ý kiến của bạn.</field>
+        <field name="grammar_name">Hiện tại đơn với need</field>
+        <field name="grammar_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu.</field>
+        <field name="common_mistake_vi">Với I, dùng need, không dùng needs.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi cần ý kiến của bạn.</field>
+        <field name="answer">I need your feedback.</field>
+        <field name="answer_explanation_vi">I + need + danh từ/cụm danh từ. Dùng để nói nhu cầu. Trong câu này, your feedback nghĩa là ý kiến của bạn.</field>
+    </record>
+    <record id="practice_beginner_developer_6" model="english.lesson">
+        <field name="name">Tôi có thể sửa lỗi này</field>
+        <field name="sequence">46</field>
+        <field name="level">beginner</field>
+        <field name="topic">developer</field>
+        <field name="state">ready</field>
+        <field name="question">What can you do?</field>
+        <field name="meaning_vi">Bạn có thể làm gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong công việc lập trình.</field>
+        <field name="sample_answers">I can test this module. — Tôi có thể kiểm thử mô-đun này.</field>
+        <field name="vocabulary_vi">fix this bug: sửa lỗi này; can: có thể.</field>
+        <field name="phrases_vi">can fix this bug: có thể sửa lỗi này.</field>
+        <field name="grammar_name">Động từ khuyết thiếu can</field>
+        <field name="grammar_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng.</field>
+        <field name="common_mistake_vi">Sau can không thêm to hoặc -ing vào động từ.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi có thể sửa lỗi này.</field>
+        <field name="answer">I can fix this bug.</field>
+        <field name="answer_explanation_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng. Trong câu này, fix this bug nghĩa là sửa lỗi này.</field>
+    </record>
+    <record id="practice_beginner_developer_7" model="english.lesson">
+        <field name="name">Tôi có thể kiểm thử mô-đun này</field>
+        <field name="sequence">47</field>
+        <field name="level">beginner</field>
+        <field name="topic">developer</field>
+        <field name="state">ready</field>
+        <field name="question">What can you do?</field>
+        <field name="meaning_vi">Bạn có thể làm gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong công việc lập trình.</field>
+        <field name="sample_answers">I can review your code. — Tôi có thể xem xét mã của bạn.</field>
+        <field name="vocabulary_vi">test this module: kiểm thử mô-đun này; can: có thể.</field>
+        <field name="phrases_vi">can test this module: có thể kiểm thử mô-đun này.</field>
+        <field name="grammar_name">Động từ khuyết thiếu can</field>
+        <field name="grammar_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng.</field>
+        <field name="common_mistake_vi">Sau can không thêm to hoặc -ing vào động từ.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi có thể kiểm thử mô-đun này.</field>
+        <field name="answer">I can test this module.</field>
+        <field name="answer_explanation_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng. Trong câu này, test this module nghĩa là kiểm thử mô-đun này.</field>
+    </record>
+    <record id="practice_beginner_developer_8" model="english.lesson">
+        <field name="name">Tôi có thể xem xét mã của bạn</field>
+        <field name="sequence">48</field>
+        <field name="level">beginner</field>
+        <field name="topic">developer</field>
+        <field name="state">ready</field>
+        <field name="question">What can you do?</field>
+        <field name="meaning_vi">Bạn có thể làm gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong công việc lập trình.</field>
+        <field name="sample_answers">I can update the documentation. — Tôi có thể cập nhật tài liệu.</field>
+        <field name="vocabulary_vi">review your code: xem xét mã của bạn; can: có thể.</field>
+        <field name="phrases_vi">can review your code: có thể xem xét mã của bạn.</field>
+        <field name="grammar_name">Động từ khuyết thiếu can</field>
+        <field name="grammar_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng.</field>
+        <field name="common_mistake_vi">Sau can không thêm to hoặc -ing vào động từ.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi có thể xem xét mã của bạn.</field>
+        <field name="answer">I can review your code.</field>
+        <field name="answer_explanation_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng. Trong câu này, review your code nghĩa là xem xét mã của bạn.</field>
+    </record>
+    <record id="practice_beginner_developer_9" model="english.lesson">
+        <field name="name">Tôi có thể cập nhật tài liệu</field>
+        <field name="sequence">49</field>
+        <field name="level">beginner</field>
+        <field name="topic">developer</field>
+        <field name="state">ready</field>
+        <field name="question">What can you do?</field>
+        <field name="meaning_vi">Bạn có thể làm gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong công việc lập trình.</field>
+        <field name="sample_answers">I can deploy the update. — Tôi có thể triển khai bản cập nhật.</field>
+        <field name="vocabulary_vi">update the documentation: cập nhật tài liệu; can: có thể.</field>
+        <field name="phrases_vi">can update the documentation: có thể cập nhật tài liệu.</field>
+        <field name="grammar_name">Động từ khuyết thiếu can</field>
+        <field name="grammar_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng.</field>
+        <field name="common_mistake_vi">Sau can không thêm to hoặc -ing vào động từ.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi có thể cập nhật tài liệu.</field>
+        <field name="answer">I can update the documentation.</field>
+        <field name="answer_explanation_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng. Trong câu này, update the documentation nghĩa là cập nhật tài liệu.</field>
+    </record>
+    <record id="practice_beginner_developer_10" model="english.lesson">
+        <field name="name">Tôi có thể triển khai bản cập nhật</field>
+        <field name="sequence">50</field>
+        <field name="level">beginner</field>
+        <field name="topic">developer</field>
+        <field name="state">ready</field>
+        <field name="question">What can you do?</field>
+        <field name="meaning_vi">Bạn có thể làm gì?</field>
+        <field name="situation_vi">Luyện nói nhu cầu và khả năng trong công việc lập trình.</field>
+        <field name="sample_answers">I can fix this bug. — Tôi có thể sửa lỗi này.</field>
+        <field name="vocabulary_vi">deploy the update: triển khai bản cập nhật; can: có thể.</field>
+        <field name="phrases_vi">can deploy the update: có thể triển khai bản cập nhật.</field>
+        <field name="grammar_name">Động từ khuyết thiếu can</field>
+        <field name="grammar_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng.</field>
+        <field name="common_mistake_vi">Sau can không thêm to hoặc -ing vào động từ.</field>
+        <field name="exercise">Dịch sang tiếng Anh: Tôi có thể triển khai bản cập nhật.</field>
+        <field name="answer">I can deploy the update.</field>
+        <field name="answer_explanation_vi">I + can + động từ nguyên mẫu. Dùng để nói khả năng. Trong câu này, deploy the update nghĩa là triển khai bản cập nhật.</field>
+    </record>
+</odoo>

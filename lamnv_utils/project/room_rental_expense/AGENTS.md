@@ -1,6 +1,6 @@
 # Chỉ dẫn cho room_rental_expense
 
-Áp dụng cho các file trong module này, cùng với `AGENTS.md` ở gốc workspace. Tài liệu kiến trúc và nghiệp vụ duy nhất là `../../AI_PROJECT_CONTEXT.md`; dùng bảng **Đọc theo task** để chọn phần cần đọc.
+Áp dụng cho các file trong module này, cùng với `../AGENTS.md` của project. Tài liệu kiến trúc và nghiệp vụ duy nhất là `AI_PROJECT_CONTEXT.md` trong addon này; dùng bảng **Đọc theo task** để chọn phần cần đọc.
 
 ## Ranh giới và nơi đặt thay đổi
 
@@ -21,4 +21,4 @@
 
 - Chọn test/smoke flow theo phần 13 của context. Nếu chưa có runtime Odoo/database test, ghi rõ phạm vi kiểm tra tĩnh; không gọi đó là kiểm thử tích hợp thành công.
 - Tests đặt trong `tests/`, import trong `tests/__init__.py`; kiểm tra chúng không bị `.gitignore` loại bỏ. Chạy bằng test runner Odoo với database riêng.
-- Không sửa bug/giới hạn đã liệt kê trong context ngoài phạm vi task. Khi behavior thay đổi, cập nhật phần nghiệp vụ, giới hạn, bảng đọc/sửa và hướng dẫn kiểm chứng liên quan trong context chung.
+- Không sửa bug/giới hạn đã liệt kê trong context ngoài phạm vi task. Khi behavior thay đổi, cập nhật phần nghiệp vụ, giới hạn, bảng đọc/sửa và hướng dẫn kiểm chứng liên quan trong context của addon.

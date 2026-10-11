@@ -1,0 +1,403 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <record id="lesson_list" model="ir.ui.view">
+        <field name="name">english.lesson.list</field>
+        <field name="model">english.lesson</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="state == 'draft'">
+                <field name="sequence" widget="handle" />
+                <field name="name" />
+                <field name="level" />
+                <field name="topic" />
+                <field name="grammar_name" />
+                <field name="unit_id" />
+                            <field name="exercise_type" />
+                            <field name="target_error" />
+                            <field name="generated" />
+                <field name="state" />
+            </list>
+        </field>
+    </record>
+    <record id="lesson_search" model="ir.ui.view">
+        <field name="name">english.lesson.search</field>
+        <field name="model">english.lesson</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" />
+                <field name="grammar_name" />
+                <field name="question" />
+                <filter name="draft" string="Chờ duyệt" domain="[('state','=','draft')]" />
+                <filter name="ready" string="Sẵn sàng" domain="[('state','=','ready')]" />
+                <group>
+                    <filter name="topic" string="Chủ đề" context="{'group_by':'topic'}" />
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="lesson_form" model="ir.ui.view">
+        <field name="name">english.lesson.form</field>
+        <field name="model">english.lesson</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_approve" type="object" string="Duyệt bài" class="btn-primary" invisible="state == 'ready'" />
+                    <field name="state" widget="statusbar" />
+                </header>
+                <sheet>
+                    <h1>
+                        <field name="name" placeholder="Tên bài học" />
+                    </h1>
+                    <group>
+                        <group>
+                            <field name="sequence" />
+                            <field name="level" />
+                            <field name="topic" />
+                        </group>
+                        <group>
+                            <field name="unit_id" />
+                            <field name="exercise_type" />
+                            <field name="target_error" />
+                            <field name="generated" />
+                            <field name="generated_for_id" />
+                            <field name="active" />
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Câu hỏi và trả lời mẫu">
+                            <group>
+                                <field name="situation_vi" />
+                                <field name="question" />
+                                <field name="meaning_vi" />
+                                <field name="sample_answers" />
+                            </group>
+                        </page>
+                        <page string="Từ, cụm từ và ngữ pháp">
+                            <group>
+                                <field name="vocabulary_vi" />
+                                <field name="phrases_vi" />
+                                <field name="grammar_name" />
+                                <field name="grammar_vi" />
+                                <field name="common_mistake_vi" />
+                            </group>
+                        </page>
+                        <page string="Bài tập và đáp án">
+                            <group>
+                                <field name="exercise" />
+                                <field name="options" invisible="exercise_type != 'choice'" />
+                                <field name="answer" />
+                                <field name="accepted_answers" />
+                                <field name="answer_explanation_vi" />
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="learner_list" model="ir.ui.view">
+        <field name="name">english.learner.list</field>
+        <field name="model">english.learner</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name" />
+                <field name="chat_id" />
+                <field name="level" />
+                <field name="topic" />
+                <field name="timezone" />
+                <field name="send_hour" />
+                <field name="send_minute" />
+                <field name="paused" />
+                <field name="progress_count" />
+            </list>
+        </field>
+    </record>
+    <record id="learner_form" model="ir.ui.view">
+        <field name="name">english.learner.form</field>
+        <field name="model">english.learner</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_pair" type="object" string="Tạo mã ghép nối" class="btn-primary" />
+                    <button name="action_send_lesson" type="object" string="Gửi bài ngay" />
+                    <button name="action_generate_lesson" type="object" string="Tạo bài bằng AI" />
+                </header>
+                <sheet>
+                    <h1>
+                        <field name="name" />
+                    </h1>
+                    <group>
+                        <group>
+                            <field name="level" />
+                            <field name="topic" />
+                            <field name="curriculum_enabled" string="Học theo lộ trình" />
+                            <field name="unit_id" string="Chặng hiện tại" />
+                            <field name="timezone" />
+                            <field name="send_hour" />
+                            <field name="send_minute" />
+                        </group>
+                        <group>
+                            <field name="chat_id" />
+                            <field name="paused" />
+                            <field name="active" />
+                            <field name="progress_count" />
+                            <field name="mastered_count" />
+                            <field name="last_daily_date" />
+                        </group>
+                    </group>
+                    <div class="alert alert-info" role="status" invisible="not pairing_command">
+                        <p>Gửi mã này trong chat riêng với bot. Mã dùng một lần, hết hạn sau 10 phút.</p>
+                        <field name="pairing_command" />
+                        <field name="pairing_expiry" readonly="1" />
+                    </div>
+                    <group>
+                        <field name="current_progress_id" />
+                        <field name="current_session_id" />
+                    </group>
+                    <separator string="Sổ lỗi sai" />
+                    <field name="mistake_ids" readonly="1">
+                        <list create="0" edit="0" delete="0">
+                            <field name="unit_id" />
+                            <field name="error_type" />
+                            <field name="occurrences" />
+                            <field name="last_answer" />
+                            <field name="correction" />
+                            <field name="explanation_vi" />
+                            <field name="recovery_count" />
+                            <field name="state" />
+                        </list>
+                    </field>
+                    <separator string="Lịch sử buổi học" />
+                    <field name="session_ids" readonly="1">
+                        <list>
+                            <field name="study_date" />
+                            <field name="unit_id" />
+                            <field name="state" />
+                            <field name="count" />
+                            <field name="correct" />
+                            <field name="skipped" />
+                            <field name="errors" />
+                            <field name="notes" optional="hide" />
+                        </list>
+                    </field>
+                    <field name="progress_ids" readonly="1">
+                        <list>
+                            <field name="lesson_id" />
+                            <field name="state" />
+                            <field name="review_step" />
+                            <field name="review_date" />
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="configuration_form" model="ir.ui.view">
+        <field name="name">english.configuration.form</field>
+        <field name="model">english.configuration</field>
+        <field name="arch" type="xml">
+            <form create="0" delete="0">
+                <header>
+                    <button name="action_test_gemini" type="object" string="Kiểm tra AI" />
+                    <button name="action_auto_model" invisible="ai_provider != 'gemini'" type="object" string="Chọn Auto" />
+                    <button name="action_refresh_models" invisible="ai_provider != 'gemini'" type="object" string="Tải model Gemini" />
+                    <button name="action_connect" type="object" string="Kết nối Telegram" class="btn-primary" />
+                    <button name="action_update_telegram_commands" type="object" string="Cập nhật menu lệnh Telegram" />
+                    <button name="action_check_connection" type="object" string="Kiểm tra webhook" />
+                </header>
+                <sheet>
+                    <h1>Daily English</h1>
+                    <div class="alert alert-info" role="status">Dùng bot riêng cho Daily English. Cần Odoo chạy liên tục và max_cron_threads ít nhất 3 để xử lý và gửi tin.</div>
+                    <group string="AI">
+                        <field name="ai_provider" string="Nhà cung cấp AI" />
+                        <field name="router_url" string="9Router API URL" invisible="ai_provider != '9router'" />
+                        <field name="router_key" string="9Router API key" password="True" invisible="ai_provider != '9router'" />
+                        <field name="router_model" string="9Router model / combo" invisible="ai_provider != '9router'" />
+                        <field name="gemini_key" password="True" invisible="ai_provider != 'gemini'" />
+                        <field name="gemini_api" string="Gemini API" invisible="ai_provider != 'gemini'" />
+                        <field name="gemini_model" placeholder="auto hoặc mã model" invisible="ai_provider != 'gemini'" />
+                        <field name="resolved_gemini_model" string="Model gọi thành công gần nhất" />
+                        <field name="gemini_models_info" string="Model hỗ trợ generateContent" invisible="ai_provider != 'gemini'" />
+                        <field name="daily_api_limit" string="Giới hạn AI/ngày (0 = không giới hạn)" />
+                        <field name="require_approval" />
+                    </group>
+                    <group string="Telegram">
+                        <field name="telegram_token" password="True" />
+                        <field name="public_url" placeholder="https://example.com" />
+                        <field name="webhook_secret" password="True" />
+                        <field name="connection_info" />
+                    </group>
+                    <group string="Lịch học">
+                        <field name="enabled" />
+                        <field name="daily_ai_enabled" string="Tạo buổi mới bằng AI mỗi ngày" />
+                        <field name="daily_ai_auto_approve" string="Tự duyệt buổi AI hằng ngày" />
+                        <field name="retention_days" string="Dọn dữ liệu sau (ngày, 0 = tắt)" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="progress_form" model="ir.ui.view">
+        <field name="name">english.progress.form</field>
+        <field name="model">english.progress</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0" delete="0">
+                <sheet>
+                    <group>
+                        <field name="learner_id" />
+                        <field name="lesson_id" />
+                        <field name="state" />
+                        <field name="review_step" />
+                        <field name="review_date" />
+                        <field name="answer_shown" />
+                    </group>
+                    <field name="attempt_ids">
+                        <list>
+                            <field name="create_date" />
+                            <field name="answer_text" />
+                            <field name="correct" />
+                            <field name="graded" />
+                            <field name="feedback_vi" />
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="delivery_list" model="ir.ui.view">
+        <field name="name">english.delivery.list</field>
+        <field name="model">english.delivery</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0">
+                <field name="create_date" />
+                <field name="learner_id" />
+                <field name="state" />
+                <field name="attempts" />
+                <field name="next_part" />
+                <field name="next_run" />
+                <field name="error_code" />
+                <button name="action_retry" type="object" string="Gửi lại" invisible="state != 'failed'" />
+            </list>
+        </field>
+    </record>
+    <record id="delivery_form" model="ir.ui.view">
+        <field name="name">english.delivery.form</field>
+        <field name="model">english.delivery</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0" delete="0">
+                <header>
+                    <button name="action_retry" type="object" string="Gửi lại" invisible="state != 'failed'" />
+                </header>
+                <sheet>
+                    <group>
+                        <field name="learner_id" />
+                        <field name="state" />
+                        <field name="next_run" />
+                        <field name="attempts" />
+                        <field name="next_part" />
+                        <field name="error_code" />
+                    </group>
+                    <field name="text" />
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="job_list" model="ir.ui.view">
+        <field name="name">english.job.list</field>
+        <field name="model">english.job</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0">
+                <field name="create_date" />
+                <field name="learner_id" />
+                <field name="kind" />
+                <field name="state" />
+                <field name="calls" />
+                <field name="tokens" />
+                <field name="next_run" />
+                <field name="error_code" />
+                <button name="action_retry" type="object" string="Thử lại" invisible="state != 'failed'" />
+            </list>
+        </field>
+    </record>
+    <record id="job_form" model="ir.ui.view">
+        <field name="name">english.job.form</field>
+        <field name="model">english.job</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0" delete="0">
+                <header>
+                    <button name="action_retry" type="object" string="Thử lại" invisible="state != 'failed'" />
+                </header>
+                <sheet>
+                    <group>
+                        <field name="learner_id" />
+                        <field name="kind" />
+                        <field name="state" />
+                        <field name="progress_id" />
+                        <field name="attempt_id" />
+                        <field name="calls" />
+                        <field name="tokens" />
+                        <field name="next_run" />
+                        <field name="error_code" />
+                    </group>
+                    <field name="input_text" />
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_lessons" model="ir.actions.act_window">
+        <field name="name">Bài học</field>
+        <field name="res_model">english.lesson</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_learners" model="ir.actions.act_window">
+        <field name="name">Người học</field>
+        <field name="res_model">english.learner</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_deliveries" model="ir.actions.act_window">
+        <field name="name">Tin nhắn Telegram</field>
+        <field name="res_model">english.delivery</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_jobs" model="ir.actions.act_window">
+        <field name="name">Tác vụ AI</field>
+        <field name="res_model">english.job</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_configuration" model="ir.actions.act_window">
+        <field name="name">Cấu hình</field>
+        <field name="res_model">english.configuration</field>
+        <field name="res_id" ref="configuration_default" />
+        <field name="view_mode">form</field>
+    </record>
+    <record id="action_units" model="ir.actions.act_window">
+        <field name="name">Lộ trình</field>
+        <field name="res_model">english.unit</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="unit_list" model="ir.ui.view">
+        <field name="name">english.unit.list</field>
+        <field name="model">english.unit</field>
+        <field name="arch" type="xml">
+            <list><field name="sequence" /><field name="name" />
+                <field name="objective_vi" /></list>
+        </field>
+    </record>
+    <record id="unit_form" model="ir.ui.view">
+        <field name="name">english.unit.form</field>
+        <field name="model">english.unit</field>
+        <field name="arch" type="xml">
+            <form><sheet><group>
+                <field name="name" /><field name="sequence" />
+                <field name="objective_vi" /><field name="grammar_vi" />
+                <field name="error_type" />
+            </group><field name="lesson_ids" readonly="1" /></sheet></form>
+        </field>
+    </record>
+    <menuitem id="menu_english" name="Daily English" groups="base.group_system" sequence="35" web_icon="daily_english,static/description/icon.png" />
+    <menuitem id="menu_units" name="Lộ trình" parent="menu_english" action="action_units" sequence="5" />
+    <menuitem id="menu_lessons" name="Bài học" parent="menu_english" action="action_lessons" sequence="10" />
+    <menuitem id="menu_learners" name="Người học" parent="menu_english" action="action_learners" sequence="20" />
+    <menuitem id="menu_jobs" name="Tác vụ AI" parent="menu_english" action="action_jobs" sequence="30" />
+    <menuitem id="menu_delivery" name="Tin nhắn Telegram" parent="menu_english" action="action_deliveries" sequence="40" />
+    <menuitem id="menu_configuration" name="Cấu hình" parent="menu_english" action="action_configuration" sequence="50" />
+</odoo>

@@ -1,0 +1,20 @@
+{
+    'name': 'Daily English',
+    'version': '19.0.1.0.10',
+    'summary': 'Daily English lessons through Telegram and Gemini',
+    'category': 'Productivity',
+    'author': 'lamnv',
+    'license': 'LGPL-3',
+    'depends': ['base', 'web', 'web_responsive'],
+    'data': [
+        'security/ir.model.access.csv',
+        'data/configuration_data.xml',
+        'data/lesson_data.xml',
+        'data/practice_data.xml',
+        'data/cron_data.xml',
+        'data/curriculum_data.xml',
+        'views/english_views.xml',
+    ],
+    'application': True,
+    'installable': True,
+}

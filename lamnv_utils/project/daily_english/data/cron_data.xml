@@ -1,0 +1,57 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo noupdate="1">
+    <record id="cron_english_daily" model="ir.cron">
+        <field name="name">Daily English: daily</field>
+        <field name="model_id" ref="model_english_learner" />
+        <field name="state">code</field>
+        <field name="code">model._cron_daily()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+    </record>
+    <record id="cron_english_jobs" model="ir.cron">
+        <field name="name">Daily English: jobs</field>
+        <field name="model_id" ref="model_english_job" />
+        <field name="state">code</field>
+        <field name="code">model._cron_process(interactive=False)</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+    </record>
+    <record id="cron_english_delivery" model="ir.cron">
+        <field name="name">Daily English: delivery</field>
+        <field name="model_id" ref="model_english_delivery" />
+        <field name="state">code</field>
+        <field name="code">model._cron_send()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+    </record>
+    <record id="cron_english_prepare" model="ir.cron">
+        <field name="name">Daily English: prepare daily session</field>
+        <field name="model_id" ref="model_english_learner" />
+        <field name="state">code</field>
+        <field name="code">model._cron_prepare()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+    </record>
+    <record id="cron_english_cleanup" model="ir.cron">
+        <field name="name">Daily English: retention cleanup</field>
+        <field name="model_id" ref="model_english_session" />
+        <field name="state">code</field>
+        <field name="code">model._cron_cleanup()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active">True</field>
+    </record>
+    <record id="cron_english_interactive" model="ir.cron">
+        <field name="name">Daily English: answer and explain</field>
+        <field name="model_id" ref="model_english_job" />
+        <field name="state">code</field>
+        <field name="code">model._cron_process(interactive=True)</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+    </record>
+</odoo>
