@@ -432,3 +432,19 @@ thuộc model, tests không chứng minh mọi câu thực tế đều chấm đ
 
 112 tests pass,0failed/errors, DB riêng API mock, log
 /tmp/english_dialogue.log. Kiểm AST, giới hạn79ký tự và git diff --check.
+
+
+## 17. Giảm lặp bài
+
+Giới hạn bài ôn đến hạn/dự phòng ở câu đầu của mỗi buổi; sau đó chọn
+bài mới. Dự phòng không lấy progress vừa cập nhật trong24giờ, không
+chọn câu hiện tại/đã xong trong buổi. Hết bài mới thì chờ generation,
+không lấp đầy5câu bằng ôn sớm. Bộ chọn bài mới loại exercise trùng văn
+bản chuẩn hóa với lịch sử, kể cả bản ghi khácID. Generate đơn cũng như
+prepare đều từ chối exercise trùng lịch sử đã học và100bài AI gần nhất.
+Đây là chống trùng văn bản, chưa bảo đảm khác ngữ nghĩa hoặc cấu trúc
+ngữ pháp. Bài đang chờ trả lời vẫn được gửi lại nếu bấm /lesson.
+Cần restart để áp dụng, không đổi schema. Chưa triển khai bot thật.
+
+Kiểm chứng115 tests pass,0failed/errors, DB riêng API mock, log
+/tmp/english_repetition_verified.log. AST/max79 và git diff --check pass.
