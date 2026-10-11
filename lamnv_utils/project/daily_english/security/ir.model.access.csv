@@ -1,0 +1,13 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_english_configuration,english.configuration,model_english_configuration,base.group_system,1,1,0,0
+access_english_lesson,english.lesson,model_english_lesson,base.group_system,1,1,1,1
+access_english_learner,english.learner,model_english_learner,base.group_system,1,1,1,1
+access_english_progress,english.progress,model_english_progress,base.group_system,1,1,1,1
+access_english_attempt,english.attempt,model_english_attempt,base.group_system,1,1,1,1
+access_english_delivery,english.delivery,model_english_delivery,base.group_system,1,1,1,1
+access_english_job,english.job,model_english_job,base.group_system,1,1,1,1
+access_english_update,english.update,model_english_update,base.group_system,1,0,0,0
+access_english_api_usage,english.api_usage,model_english_api_usage,base.group_system,1,0,0,0
+access_english_session,english.session,model_english_session,base.group_system,1,1,0,0
+access_english_unit,english.unit,model_english_unit,base.group_system,1,1,1,0
+access_english_mistake,english.mistake,model_english_mistake,base.group_system,1,0,0,0

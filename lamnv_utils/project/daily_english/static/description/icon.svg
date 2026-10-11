@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+<title>Daily English: open book and conversation</title>
+<rect x="0" y="0" width="512" height="512" rx="112" fill="#087F8C"/>
+<rect x="30" y="30" width="452" height="452" rx="90" fill="#0B8E99"/>
+<polygon points="98,248 248,279 409,248 409,405 255,441 98,404" fill="#076471"/>
+<polygon points="82,225 238,253 238,415 82,384" fill="#D7EEE8"/>
+<polygon points="255,253 417,225 417,384 255,415" fill="#B9DED7"/>
+<polygon points="96,211 240,239 240,394 96,365" fill="#FFF8E8"/>
+<polygon points="253,239 403,211 403,365 253,394" fill="#F0EFDD"/>
+<polyline points="246,245 246,402" fill="none" stroke="#075E6A" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="118,273 210,291" fill="none" stroke="#ABD1CA" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="118,302 210,320" fill="none" stroke="#ABD1CA" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="118,331 210,349" fill="none" stroke="#ABD1CA" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="282,287 379,268" fill="none" stroke="#95C4BA" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="282,316 379,297" fill="none" stroke="#95C4BA" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="282,345 379,326" fill="none" stroke="#95C4BA" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="186" y="75" width="245" height="160" rx="40" fill="#073D50"/>
+<polygon points="212,219 211,266 263,229" fill="#073D50"/>
+<text x="307" y="190" text-anchor="middle" fill="#FFFFFF" font-family="DejaVu Sans,sans-serif" font-weight="bold" font-size="94">Aa</text>
+<polygon points="116,83 124,105 146,113 124,121 116,143 108,121 86,113 108,105" fill="#FFD166"/>
+</svg>

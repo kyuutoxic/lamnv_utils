@@ -1,12 +1,12 @@
-# lamnv_utils — ngữ cảnh project dành cho AI
+# room_rental_expense — ngữ cảnh addon dành cho AI
 
-> Đối chiếu source ngày **2026-10-08**. Đọc phần 1 trước để nắm nhanh; các phần sau giải thích chi tiết và chỉ đến nơi cần sửa. File này có thể đưa riêng cho AI, không cần đính kèm các README khác để hiểu kiến trúc và nghiệp vụ chính.
+> Đối chiếu source ngày **2026-10-08**. Đọc phần 1 trước để nắm nhanh; các phần sau giải thích chi tiết và chỉ đến nơi cần sửa. File này có thể đưa riêng cho AI để hiểu kiến trúc và nghiệp vụ phòng trọ. Addon daily_english có context riêng.
 >
 > Đây là mô tả code đang có, không phải cam kết mọi flow đã chạy thành công. Đã chạy tests Odoo 19 trên database riêng ngày 2026-10-06; phạm vi/kết quả ở phần 13. Khi sửa code, kiểm tra lại file nguồn vì tài liệu là snapshot. Không chứa mật khẩu, bot token hay webhook secret thật.
 
 ## Đọc theo task
 
-Đọc `AGENTS.md` ở gốc và phần 1 trước. Khi sửa addon, đọc thêm `project/room_rental_expense/AGENTS.md`. Sau đó dùng bảng này để đọc có chọn lọc; không cần nạp toàn bộ source OCA cho mỗi task.
+Đọc `project/AGENTS.md` và phần 1 trước. Khi sửa addon, đọc thêm `project/room_rental_expense/AGENTS.md`. Sau đó dùng bảng này để đọc có chọn lọc; không cần nạp toàn bộ source OCA cho mỗi task.
 
 | Task | Phần context cần đọc | Source cần mở trước |
 | --- | --- | --- |
@@ -26,8 +26,8 @@
 ### Vai trò của từng file hướng dẫn
 
 ```text
-AGENTS.md                              quy tắc chung + quy trình lấy ngữ cảnh
-AI_PROJECT_CONTEXT.md                  kiến trúc/nghiệp vụ/flow + bảng điều hướng
+project/AGENTS.md                      quy tắc chung + quy trình lấy ngữ cảnh
+project/room_rental_expense/AI_PROJECT_CONTEXT.md  kiến trúc/nghiệp vụ/flow
 project/room_rental_expense/AGENTS.md    quy tắc riêng của addon Odoo
 source + tests                         behavior thực tế + bằng chứng kiểm chứng
 ```
@@ -55,7 +55,7 @@ Quy ước thư mục và đặt tên source của addon dựa trên [Odoo 19 co
 
 ## 1. Nắm project trong 2 phút
 
-`lamnv_utils` là workspace custom addon cho **Odoo 19**, hiện có một addon nghiệp vụ tự viết: **`project/room_rental_expense`**, version manifest `19.0.1.4.0`, author `lamnv`, license `LGPL-3`, application bật, auto-install tắt.
+`lamnv_utils` là workspace custom addon cho **Odoo 19**, context này mô tả addon nghiệp vụ: **`project/room_rental_expense`**, version manifest `19.0.1.4.0`, author `lamnv`, license `LGPL-3`, application bật, auto-install tắt.
 
 Mục đích là **theo dõi chi phí thuê phòng trọ cá nhân**: phòng và chủ phòng, điện nước, tiền thuê, hóa đơn, thanh toán, chi phí phát sinh, tiền cọc, sự cố, lịch sử ở. Telegram giúp nhập nhanh chỉ số và thao tác hóa đơn từ điện thoại. Tên “invoice” ở đây là hóa đơn custom của ứng dụng; không có tích hợp `account.move`, sổ kế toán hoặc cổng thanh toán.
 
@@ -90,26 +90,30 @@ Những điểm AI cần giữ đúng:
 
 ## 2. Cấu trúc và ranh giới repository
 
+Từ 2026-10-08, context đặt trong addon phòng trọ; quy tắc chung ở
+`../AGENTS.md`. Addon `../daily_english/` có AGENTS và context riêng.
+Đường dẫn source trong tài liệu giữ theo workspace, trừ khi ghi khác.
+
 ```text
 lamnv_utils/
-├── AGENTS.md                         quy tắc chung và thứ tự đọc theo task
-├── AI_PROJECT_CONTEXT.md             file onboarding độc lập này
-├── config/local.conf                cấu hình instance local; có dữ liệu bí mật
-├── project/room_rental_expense/
-│   ├── AGENTS.md                     chỉ dẫn riêng của addon Odoo
-│   ├── __manifest__.py, __init__.py
-│   ├── models/                       nghiệp vụ + receipt/session/reminder Telegram + summary/anomaly + settings
-│   ├── controllers/telegram_webhook.py
-│   ├── security/ir.model.access.csv
-│   ├── data/                         sequence, mặc định, cron
-│   ├── views/                        XML view/menu/settings/outbox
-│   ├── reports/invoice_template.xml
-│   ├── tests/                        TransactionCase và HttpCase
-│   ├── migrations/19.0.1.1.0/        tính lại status/tổng khi upgrade
-│   └── static/
-│       ├── src/js/currency_widget.js
-│       └── description/              icon.png, room_icon.png, index.html
-└── addons_oca/addons_oca/web/          bộ OCA web 19.0, có source/test/docs riêng
+├── config/local.conf                     cấu hình local, có secrets
+├── project/
+│   ├── AGENTS.md                         quy tắc chung custom addons
+│   ├── daily_english/                    addon tiếng Anh, context riêng
+│   └── room_rental_expense/
+│       ├── AGENTS.md                     chỉ dẫn riêng của addon
+│       ├── AI_PROJECT_CONTEXT.md         context phòng trọ (file này)
+│       ├── __manifest__.py, __init__.py
+│       ├── models/                       nghiệp vụ và Telegram
+│       ├── controllers/telegram_webhook.py
+│       ├── security/ir.model.access.csv
+│       ├── data/                         sequence, defaults, cron
+│       ├── views/                        XML view/menu/settings
+│       ├── reports/invoice_template.xml
+│       ├── tests/                        TransactionCase và HttpCase
+│       ├── migrations/19.0.1.1.0/
+│       └── static/                       JS widget và ảnh
+└── addons_oca/addons_oca/web/              OCA web 19.0
 ```
 
 Odoo core nằm **ngoài workspace này** theo `addons_path` (`../odoo/odoo/addons`, `../odoo/addons`); còn có addon path ngoài repo `~/code/learn_odoo`. Không suy luận module ở đó tồn tại hoặc đã cài chỉ từ config.
@@ -647,7 +651,7 @@ Smoke flow: tạo phòng có default_rent + config → reading hai kỳ → tạ
 
 ## 14. Quy tắc làm việc và prompt dùng lại
 
-`AGENTS.md` tại root là nguồn quy tắc chính:
+`project/AGENTS.md` là nguồn quy tắc chính:
 
 - Trước task đọc code hiện tại, các phần context liên quan, config/flow/message liên quan.
 - Docs thiếu/lệch phải đồng bộ trước hoặc trong task.
@@ -656,7 +660,7 @@ Smoke flow: tạo phòng có default_rent + config → reading hai kỳ → tạ
 
 `project/room_rental_expense/AGENTS.md` bổ sung chỉ dẫn đặt code, giữ interface/import/manifest, đọc các điểm liên kết và kiểm chứng Odoo. Quy tắc chỉ nằm trong các AGENTS; mô tả kiến trúc/behavior vẫn nằm trong file context này. Khi đổi trách nhiệm hoặc đường dẫn source, cập nhật cả bảng **Đọc theo task** và bản đồ sửa code ở phần 13.
 
-File context này là tài liệu tổng hợp duy nhất của project; không thay thế source. Không tạo lại cây tài liệu theo phase/module. Sau thay behavior, đồng bộ phần tương ứng ở file này để lần AI đọc sau không dùng snapshot lỗi thời. Không chép secrets từ local.conf/system parameters/log vào context.
+File context này là tài liệu tổng hợp duy nhất của addon phòng trọ; không thay thế source. Không tạo lại cây tài liệu theo phase/module. Sau thay behavior, đồng bộ phần tương ứng ở file này để lần AI đọc sau không dùng snapshot lỗi thời. Không chép secrets từ local.conf/system parameters/log vào context.
 
 Phân biệt mô tả hiện có và đề xuất: mục tiêu/checklist/hạng mục tương lai chưa phải behavior đã triển khai; kiểm tra source trước khi nói một tính năng đã tồn tại. Hướng dẫn AI chỉ dùng các AGENTS và context này; bộ workflow/metadata AI DevKit cũ đã được bỏ để tránh thêm lớp hướng dẫn trùng lặp. Cache Python là file sinh tự động, không thuộc source cần lưu. Report đang dùng nằm trong `reports/`; thư mục `report/` rỗng không cần giữ.
 
@@ -665,7 +669,7 @@ Prompt ngắn khi đưa file này cho AI:
 ```text
 Hãy đọc AI_PROJECT_CONTEXT.md để hiểu project lamnv_utils và addon Odoo 19
 room_rental_expense. Tài liệu mô tả snapshot source, các behavior và giới hạn
-hiện có. Trước khi sửa, đọc AGENTS.md ở gốc, AGENTS.md của module,
+hiện có. Trước khi sửa, đọc AGENTS.md của project, AGENTS.md của module,
 bảng Đọc theo task, source và các phần context liên quan; ưu tiên
 source khi có khác biệt. Không giả định các mục checklist đã được triển khai
 hoặc test đã pass. Khi thay behavior, đồng bộ context này.

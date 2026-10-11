@@ -3,8 +3,8 @@
 ## Điểm vào và thứ tự đọc
 
 - Workspace này chứa addon Odoo trong `project/` và dependency OCA trong `addons_oca/`.
-- Bắt đầu bằng phần **Đọc theo task** và phần 1 của `AI_PROJECT_CONTEXT.md`, sau đó đọc các phần được chỉ dẫn cho task hiện tại.
-- Khi làm trong `project/room_rental_expense/`, đọc thêm `project/room_rental_expense/AGENTS.md` để áp dụng quy tắc riêng của module.
+- Đọc AGENTS.md và AI_PROJECT_CONTEXT.md trong addon đang làm; mỗi addon có context riêng.
+- Context từng addon: [phòng trọ](room_rental_expense/AI_PROJECT_CONTEXT.md), [tiếng Anh](daily_english/AI_PROJECT_CONTEXT.md). Đọc AGENTS.md cùng thư mục addon để áp dụng quy tắc riêng.
 - `AGENTS.md` chỉ chứa chỉ dẫn làm việc; kiến trúc, nghiệp vụ, cấu hình và giới hạn được mô tả trong `AI_PROJECT_CONTEXT.md`. Không chép lại cùng một mô tả ở nhiều file.
 
 ## Ngữ cảnh và tài liệu
@@ -13,7 +13,7 @@
   - code hiện tại của phần sẽ sửa
   - các phần liên quan trong `AI_PROJECT_CONTEXT.md`
   - cấu hình, flow tích hợp, message người dùng hoặc hành vi hiện có nếu task đụng đến chúng
-- `AI_PROJECT_CONTEXT.md` là tài liệu tổng hợp duy nhất của project; không tạo lại cây tài liệu theo từng phase/module.
+- `AI_PROJECT_CONTEXT.md` trong addon là tài liệu tổng hợp duy nhất của addon; không tạo lại cây tài liệu theo từng phase/module.
 - Nếu context còn thiếu hoặc lệch so với code, phải cập nhật phần cần thiết trước hoặc trong lúc làm task, không để đến cuối mới phát hiện lệch.
 - Mọi thay đổi làm thay đổi hành vi chức năng phải cập nhật các phần liên quan trong `AI_PROJECT_CONTEXT.md` trước khi kết thúc task.
 - Nếu thêm lệnh, action, settings, integration flow hoặc thay đổi format phản hồi, tài liệu phải phản ánh đúng behavior mới.
@@ -41,4 +41,4 @@
 - Yêu cầu mới nhất của người dùng quyết định phạm vi và behavior mong muốn; code hiện tại quyết định behavior đang triển khai. Context là bản mô tả cần đối chiếu, không phải bằng chứng runtime.
 - Nếu phát hiện context lệch code, đọc caller/config liên quan rồi sửa phần lệch; không tự đổi behavior chỉ để khớp tài liệu.
 - Khi tiếp tục sau gián đoạn, đọc lại Git status/diff, phần context của task và các file đang sửa; không dựa vào việc AI nhớ toàn bộ cuộc trò chuyện.
-- Nếu thêm module, thêm một `AGENTS.md` ngắn trong module để ghi chỉ dẫn riêng và bổ sung module vào context chung. Không tạo cây README theo phase hoặc bản sao context.
+- Nếu thêm module, thêm `AGENTS.md` ngắn và `AI_PROJECT_CONTEXT.md` riêng trong module; không chép context của module khác. Không tạo cây README theo phase hoặc bản sao context.
