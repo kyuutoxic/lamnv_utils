@@ -345,6 +345,10 @@ class EnglishLearner(models.Model):
         ], order='review_date, id', limit=1)
         plan = self.current_session_id
         unit = self._learning_unit()
+        seen = {
+            lesson._text_key(lesson.exercise)
+            for lesson in self.progress_ids.lesson_id
+        }
         planned = plan.lesson_ids.filtered(
             lambda lesson: lesson.state == 'ready' and lesson.active
             and (lesson.unit_id == unit or (
@@ -353,8 +357,9 @@ class EnglishLearner(models.Model):
                 and plan.unit_id == unit
             ))
             and lesson not in self.progress_ids.lesson_id
+            and lesson._text_key(lesson.exercise) not in seen
         ).sorted('sequence')[:1]
-        if planned and (not progress or self.session_count > 0):
+        if self.session_active and self.session_count > 0:
             progress = self.env['english.progress']
         if progress:
             progress.write({
@@ -370,7 +375,9 @@ class EnglishLearner(models.Model):
                 ('id', 'not in', self.progress_ids.lesson_id.ids),
                 '|', ('generated_for_id', '=', False),
                 ('generated_for_id', '=', self.id),
-            ], limit=1)
+            ]).filtered(
+                lambda item: item._text_key(item.exercise) not in seen
+            )[:1]
             if not lesson:
                 self.action_generate_lesson()
                 if self._send_waiting_review(automatic=automatic):
@@ -394,13 +401,15 @@ class EnglishLearner(models.Model):
 
     def _send_waiting_review(self, automatic=False):
         # Keep a session moving without awarding early recall credit.
-        if not self.session_active:
+        if not self.session_active or self.session_count > 0:
             return False
         excluded = self.current_session_id.completed_ids
         excluded |= self.current_progress_id.lesson_id
         progress = self.env['english.progress'].search([
             ('learner_id', '=', self.id), ('state', '=', 'done'),
             ('lesson_id', 'not in', excluded.ids),
+            ('write_date', '<',
+             fields.Datetime.now() - timedelta(hours=24)),
             ('lesson_id.active', '=', True),
             ('lesson_id.state', '=', 'ready'),
             ('lesson_id.unit_id', '=', self._learning_unit().id),

@@ -354,12 +354,11 @@ class EnglishJob(models.Model):
         if self.kind in ('generate', 'prepare'):
             count = 5 if self.kind == 'prepare' else 1
             lessons = self.env['english.lesson']
-            seen = set()
-            if self.kind == 'prepare':
-                previous = lessons.search([
-                    ('generated_for_id', '=', learner.id),
-                ], order='id desc', limit=60)
-                seen = {lessons._text_key(item.exercise) for item in previous}
+            previous = lessons.search([
+                ('generated_for_id', '=', learner.id),
+            ], order='id desc', limit=100)
+            previous |= learner.progress_ids.lesson_id
+            seen = {lessons._text_key(item.exercise) for item in previous}
             auto = (
                 config.daily_ai_auto_approve if self.kind == 'prepare'
                 else not config.require_approval

@@ -143,6 +143,9 @@ class TestCurriculum(TransactionCase):
             result.update({
                 f'q{n}_{key}': lesson[key] for key in LESSON_FIELDS
             })
+        result['q1_exercise'] = 'I ___ an engineer.'
+        result['q4_exercise'] = 'Dịch: Tôi là kỹ sư.'
+        result['q4_answer'] = 'I am an engineer.'
         result['q1_options'] = self.lessons[0].options
         return result
 
@@ -391,6 +394,11 @@ class TestCurriculum(TransactionCase):
             progress.write({
                 'state': 'done', 'review_date': '2099-01-01',
             })
+        self.env.flush_all()
+        self.cr.execute(
+            "UPDATE english_progress SET write_date = NOW() - "
+            "interval '2 days' WHERE learner_id = %s", [self.learner.id],
+        )
         self.learner._begin_session()
         progress = self.learner.current_progress_id
         self.assertEqual(progress.state, 'awaiting')
@@ -401,7 +409,8 @@ class TestCurriculum(TransactionCase):
         progress._submit(progress.lesson_id.answer)
         self.assertEqual(progress.review_step, 0)
         self.assertFalse(progress.independent_credit)
-        self.assertNotEqual(self.learner.current_progress_id, progress)
+        self.assertEqual(self.learner.current_progress_id, progress)
+        self.assertEqual(progress.state, 'done')
 
     def test_generation_does_not_resend_unanswered_question(self):
         self.learner._begin_session()
@@ -465,3 +474,27 @@ class TestCurriculum(TransactionCase):
         })
         self.assertEqual(progress.state, 'awaiting')
         self.assertEqual(progress.dialogue_turn, 0)
+
+    def test_recent_exercises_not_reused_as_waiting_review(self):
+        for lesson in self.lessons:
+            progress = self.assign(lesson)
+            progress.write({'state': 'done', 'review_date': '2099-01-01'})
+        self.learner._begin_session()
+        self.assertFalse(self.learner._send_waiting_review())
+
+    def test_single_generation_rejects_seen_exercise(self):
+        self.assign(self.lessons[3])
+        job = self.env['english.job']._enqueue(self.learner, 'generate')
+        result = {key: self.lessons[3][key] for key in LESSON_FIELDS}
+        with self.assertRaises(ValidationError), self.cr.savepoint():
+            job._apply_result(self.config, result)
+
+    def test_existing_duplicate_record_is_not_a_new_exercise(self):
+        progress = self.assign(self.lessons[0])
+        progress.write({'state': 'done', 'review_date': '2099-01-01'})
+        duplicate = self.lessons[0].copy({'sequence': 0})
+        self.learner._begin_session()
+        self.assertNotEqual(self.learner.current_progress_id.lesson_id,
+                            duplicate)
+        self.assertEqual(self.learner.current_progress_id.lesson_id,
+                         self.lessons[1])
